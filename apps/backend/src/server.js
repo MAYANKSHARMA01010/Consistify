@@ -1,5 +1,7 @@
 const express = require("express");
+const cookieParser = require("cookie-parser");
 const corsMiddleware = require("./configs/cors.js");
+const authRouter = require("./routes/auth.routes.js");
 require("dotenv").config();
 
 const app = express();
@@ -7,6 +9,9 @@ const PORT = process.env.SERVER_PORT;
 
 app.use(corsMiddleware);
 app.use(express.json());
+app.use(cookieParser());
+
+app.use("/api/auth", authRouter)
 
 app.get("/", (req, res) => {
   res.status(200).send("<h1>Backend Running Successfully 🚀</h1>");

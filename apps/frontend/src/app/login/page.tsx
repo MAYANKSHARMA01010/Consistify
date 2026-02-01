@@ -40,7 +40,10 @@ export default function LoginPage() {
     };
 
     const handleGoogleLogin = () => {
-        window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_SERVER_URL}/api/auth/google`;
+        const backendUrl = process.env.NODE_ENV === "production"
+            ? process.env.NEXT_PUBLIC_BACKEND_SERVER_URL
+            : process.env.NEXT_PUBLIC_BACKEND_LOCAL_URL;
+        window.location.href = `${backendUrl}/api/auth/google`;
     };
 
     return (

@@ -2,6 +2,7 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const corsMiddleware = require("./configs/cors.js");
 const authRouter = require("./routes/auth.routes.js");
+const tasksRouter = require("./routes/tasks.routes.js");
 require("dotenv").config();
 
 const app = express();
@@ -11,7 +12,8 @@ app.use(corsMiddleware);
 app.use(express.json());
 app.use(cookieParser());
 
-app.use("/api/auth", authRouter)
+app.use("/api/auth", authRouter);
+app.use("/api/tasks", tasksRouter);
 
 app.get("/", (req, res) => {
   res.status(200).send("<h1>Backend Running Successfully 🚀</h1>");

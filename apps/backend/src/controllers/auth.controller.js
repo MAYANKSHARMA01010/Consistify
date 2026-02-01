@@ -1,14 +1,13 @@
 const prisma = require("../configs/prisma");
 
-const {
-    hashPassword,
-    comparePassword
+const { 
+    hashPassword, 
+    comparePassword 
 } = require("../utils/hash");
 
 const {
     signAccessToken,
     signRefreshToken,
-    verifyAccessToken,
     verifyRefreshToken,
 } = require("../utils/jwt");
 
@@ -40,9 +39,7 @@ const register = async (req, res) => {
         },
     });
 
-    return res.status(201).json({
-        message: "User registered successfully",
-    });
+    return res.status(201).json({ message: "User registered successfully" });
 };
 
 
@@ -65,10 +62,7 @@ const login = async (req, res) => {
         return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const payload = {
-        id: user.id,
-        role: user.role,
-    };
+    const payload = { id: user.id, role: user.role };
 
     const accessToken = signAccessToken(payload);
     const refreshToken = signRefreshToken(payload);
@@ -94,7 +88,6 @@ const login = async (req, res) => {
 const logout = (req, res) => {
     res.clearCookie("accessToken");
     res.clearCookie("refreshToken");
-
     return res.json({ message: "Logged out successfully" });
 };
 
@@ -130,12 +123,12 @@ const refreshToken = async (req, res) => {
             role: decoded.role,
         };
 
-        const accessToken = signAccessToken(payload);
+        const newAccessToken = signAccessToken(payload);
         const newRefreshToken = signRefreshToken(payload);
 
         const isProd = process.env.NODE_ENV === "production";
 
-        res.cookie("accessToken", accessToken, {
+        res.cookie("accessToken", newAccessToken, {
             httpOnly: true,
             secure: isProd,
             sameSite: isProd ? "none" : "lax",
@@ -148,11 +141,10 @@ const refreshToken = async (req, res) => {
         });
 
         return res.json({ message: "Refresh token successful" });
-    } catch (err) {
+    } catch {
         return res.status(401).json({ message: "Invalid or expired token" });
     }
 };
-
 
 module.exports = {
     register,

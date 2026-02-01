@@ -6,11 +6,12 @@ const {
     me,
     refreshToken,
 } = require("../controllers/auth.controller");
-const { 
-    requireAuth, 
-    requireRefreshAuth 
+
+const {
+    requireAuth,
+    requireRefreshAuth,
 } = require("../middlewares/auth.middleware");
- 
+
 const authRouter = express.Router();
 
 authRouter.post("/register", register);

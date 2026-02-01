@@ -3,6 +3,8 @@ const cookieParser = require("cookie-parser");
 const corsMiddleware = require("./configs/cors.js");
 const authRouter = require("./routes/auth.routes.js");
 const tasksRouter = require("./routes/tasks.routes.js");
+const dailyStatusRouter = require("./routes/dailyStatus.routes.js");
+const summaryRouter = require("./routes/summary.routes.js");
 require("dotenv").config();
 
 const app = express();
@@ -14,6 +16,8 @@ app.use(cookieParser());
 
 app.use("/api/auth", authRouter);
 app.use("/api/tasks", tasksRouter);
+app.use("/api/daily-status", dailyStatusRouter);
+app.use("/api/summary", summaryRouter);
 
 app.get("/", (req, res) => {
   res.status(200).send("<h1>Backend Running Successfully 🚀</h1>");

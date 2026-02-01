@@ -92,7 +92,6 @@ const deleteTask = async (req, res) => {
             return res.status(403).json({ message: "Unauthorized" });
         }
 
-        // Soft delete
         await prisma.task.update({
             where: { id },
             data: { isActive: false },

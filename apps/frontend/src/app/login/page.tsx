@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -8,11 +8,19 @@ import { loginSchema } from "../../utils/validators";
 import toast from "react-hot-toast";
 
 export default function LoginPage() {
-    const { login } = useAuth();
+    const { login, isLoggedIn, loading } = useAuth();
     const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        if (!loading && isLoggedIn) {
+            router.replace("/dashboard");
+        }
+    }, [isLoggedIn, loading, router]);
+
+    if (loading || isLoggedIn) return null;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -31,6 +39,7 @@ export default function LoginPage() {
         try {
             await login({ email, password });
             toast.success("Welcome back!");
+            router.push("/dashboard");
         } catch (err: any) {
             const message = err.response?.data?.message || err.response?.data?.error || err.message || "Failed to login";
             toast.error(message);
@@ -59,7 +68,7 @@ export default function LoginPage() {
                             href="/register"
                             className="font-medium text-black hover:text-gray-800 underline"
                         >
-                            start your 14-day free trial
+                            Sign up to get started
                         </Link>
                     </p>
                 </div>

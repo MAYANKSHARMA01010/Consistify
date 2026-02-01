@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import Link from "next/link";
 import { registerSchema } from "../../utils/validators";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
-    const { register } = useAuth();
+    const { register, isLoggedIn, loading } = useAuth();
+    const router = useRouter();
     const [formData, setFormData] = useState({
         name: "",
         username: "",
@@ -16,6 +18,14 @@ export default function RegisterPage() {
         confirmPassword: ""
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        if (!loading && isLoggedIn) {
+            router.replace("/dashboard");
+        }
+    }, [isLoggedIn, loading, router]);
+
+    if (loading || isLoggedIn) return null;
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -43,6 +53,7 @@ export default function RegisterPage() {
                 password: formData.password
             });
             toast.success("Account created successfully!");
+            router.push("/login");
         } catch (err: any) {
             const message = err.response?.data?.message || err.response?.data?.error || err.message || "Failed to register";
             toast.error(message);

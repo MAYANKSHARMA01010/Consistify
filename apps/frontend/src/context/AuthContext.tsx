@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { apiFetch } from "../utils/api";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 type User = {
     id: string;
@@ -15,6 +16,7 @@ type User = {
 type AuthContextType = {
     user: User | null;
     loading: boolean;
+    isLoggedIn: boolean;
     refreshUser: () => Promise<void>;
     login: (data: any) => Promise<void>;
     register: (data: any) => Promise<void>;
@@ -70,7 +72,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.error("Logout failed", error);
         }
         setUser(null);
-        router.push("/login"); // Redirect to login after logout
+        router.push("/login");
+        toast.success("Logged out successfully!");
     };
 
     useEffect(() => {
@@ -78,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, loading, refreshUser, login, register, logout }}>
+        <AuthContext.Provider value={{ user, isLoggedIn: !!user, loading, refreshUser, login, register, logout }}>
             {children}
         </AuthContext.Provider>
     );

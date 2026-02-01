@@ -118,8 +118,8 @@ const googleCallback = async (req, res) => {
         });
 
         const frontendRedirect = isProd
-            ? process.env.FRONTEND_SERVER_URL
-            : process.env.FRONTEND_LOCAL_URL;
+            ? `${process.env.FRONTEND_SERVER_URL}/dashboard`
+            : `${process.env.FRONTEND_LOCAL_URL}/dashboard`;
 
         return res.redirect(frontendRedirect);
     } catch (error) {

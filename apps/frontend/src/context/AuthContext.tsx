@@ -46,7 +46,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             headers: { "Content-Type": "application/json" }
         });
         await refreshUser();
-        router.push("/");
+        if (user) {
+            router.push("/dashboard");
+        }
     };
 
     const register = async (data: any) => {
@@ -56,7 +58,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             headers: { "Content-Type": "application/json" }
         });
         await refreshUser();
-        router.push("/");
+        if (user) {
+            router.push("/dashboard");
+        }
     };
 
     const logout = async () => {

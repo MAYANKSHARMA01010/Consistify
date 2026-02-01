@@ -1,4 +1,4 @@
-const prisma = require("../configs/prisma").prisma;
+const prisma = require("../configs/prisma");
 const { calculateAndSaveSummary } = require("./summary.controller");
 const ApiError = require("../utils/ApiError");
 

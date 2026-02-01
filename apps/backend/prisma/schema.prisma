@@ -7,13 +7,76 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
-  Id        Int      @id @default(autoincrement())
-  Name      String
-  Username  String   @unique
-  Email     String   @unique
-  Password  String
-  Role      String   @default("USER")
-  CreatedAt DateTime @default(now())
-  UpdatedAt DateTime @updatedAt
+  id        String   @id @default(uuid())
+  name      String
+  username  String   @unique
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+
+  tasks        Task[]
+  dailyStatus  DailyTaskStatus[]
+  dailySummary DailySummary[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Task {
+  id        String   @id @default(uuid())
+  userId   String
+  title    String
+  isActive Boolean  @default(true)
+
+  startDate DateTime
+  endDate   DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dailyStatus DailyTaskStatus[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model DailyTaskStatus {
+  id        String   @id @default(uuid())
+  userId   String
+  taskId   String
+  date     DateTime
+  isCompleted Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([taskId, date])
+  @@index([userId, date])
+}
+
+model DailySummary {
+  id        String   @id @default(uuid())
+  userId   String
+  date     DateTime
+
+  completedTasks Int
+  totalTasks     Int
+  points         Int
+  consistency    Float
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date])
+  @@index([userId, date])
 }

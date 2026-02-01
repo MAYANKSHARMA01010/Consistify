@@ -1,16 +1,32 @@
 const prisma = require("../configs/prisma").prisma;
+const ApiError = require("../utils/ApiError");
 
-const createTask = async (req, res) => {
+const createTask = async (req, res, next) => {
     try {
         const { title, startDate, endDate } = req.body;
 
-        if (!title || !startDate) {
-            return res.status(400).json({ message: "Title and Start Date are required" });
+        if (!title || typeof title !== 'string' || !title.trim()) {
+            throw new ApiError(400, "Title is required");
+        }
+        if (!startDate) {
+            throw new ApiError(400, "Start Date is required");
+        }
+
+        const existingActiveTask = await prisma.task.findFirst({
+            where: {
+                userId: req.user.id,
+                title: { equals: title.trim(), mode: 'insensitive' },
+                isActive: true
+            }
+        });
+
+        if (existingActiveTask) {
+            throw new ApiError(409, "An active task with this title already exists");
         }
 
         const task = await prisma.task.create({
             data: {
-                title,
+                title: title.trim(),
                 startDate: new Date(startDate),
                 endDate: endDate ? new Date(endDate) : null,
                 userId: req.user.id,
@@ -19,12 +35,11 @@ const createTask = async (req, res) => {
 
         return res.status(201).json(task);
     } catch (error) {
-        console.error("Create Task Error:", error);
-        return res.status(500).json({ message: "Internal server error" });
+        next(error);
     }
 };
 
-const getTasks = async (req, res) => {
+const getTasks = async (req, res, next) => {
     try {
         const tasks = await prisma.task.findMany({
             where: {
@@ -38,12 +53,11 @@ const getTasks = async (req, res) => {
 
         return res.json(tasks);
     } catch (error) {
-        console.error("Get Tasks Error:", error);
-        return res.status(500).json({ message: "Internal server error" });
+        next(error);
     }
 };
 
-const updateTask = async (req, res) => {
+const updateTask = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { title, startDate, endDate } = req.body;
@@ -53,17 +67,31 @@ const updateTask = async (req, res) => {
         });
 
         if (!task) {
-            return res.status(404).json({ message: "Task not found" });
+            throw new ApiError(404, "Task not found");
         }
 
         if (task.userId !== req.user.id) {
-            return res.status(403).json({ message: "Unauthorized" });
+            throw new ApiError(403, "Unauthorized");
+        }
+
+        if (title && title.trim() !== task.title) {
+            const duplicate = await prisma.task.findFirst({
+                where: {
+                    userId: req.user.id,
+                    title: { equals: title.trim(), mode: 'insensitive' },
+                    isActive: true,
+                    id: { not: id }
+                }
+            });
+            if (duplicate) {
+                throw new ApiError(409, "Another active task with this title already exists");
+            }
         }
 
         const updatedTask = await prisma.task.update({
             where: { id },
             data: {
-                title,
+                title: title ? title.trim() : undefined,
                 startDate: startDate ? new Date(startDate) : undefined,
                 endDate: endDate ? new Date(endDate) : undefined,
             },
@@ -71,12 +99,11 @@ const updateTask = async (req, res) => {
 
         return res.json(updatedTask);
     } catch (error) {
-        console.error("Update Task Error:", error);
-        return res.status(500).json({ message: "Internal server error" });
+        next(error);
     }
 };
 
-const deleteTask = async (req, res) => {
+const deleteTask = async (req, res, next) => {
     try {
         const { id } = req.params;
 
@@ -85,11 +112,11 @@ const deleteTask = async (req, res) => {
         });
 
         if (!task) {
-            return res.status(404).json({ message: "Task not found" });
+            throw new ApiError(404, "Task not found");
         }
 
         if (task.userId !== req.user.id) {
-            return res.status(403).json({ message: "Unauthorized" });
+            throw new ApiError(403, "Unauthorized");
         }
 
         await prisma.task.update({
@@ -97,10 +124,9 @@ const deleteTask = async (req, res) => {
             data: { isActive: false },
         });
 
-        return res.json({ message: "Task deleted successfully" });
+        return res.json({ success: true, message: "Task deleted successfully" });
     } catch (error) {
-        console.error("Delete Task Error:", error);
-        return res.status(500).json({ message: "Internal server error" });
+        next(error);
     }
 };
 

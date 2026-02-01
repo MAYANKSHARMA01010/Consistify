@@ -1,4 +1,5 @@
 const prisma = require("../configs/prisma").prisma;
+const ApiError = require("../utils/ApiError");
 
 const calculateAndSaveSummary = async (userId, date) => {
     try {
@@ -47,11 +48,11 @@ const calculateAndSaveSummary = async (userId, date) => {
         return summary;
     } catch (error) {
         console.error("Calculate Summary Error:", error);
-        throw error;
+        throw new ApiError(500, "Failed to calculate summary");
     }
 };
 
-const getTodaySummary = async (req, res) => {
+const getTodaySummary = async (req, res, next) => {
     try {
         const today = new Date();
         today.setUTCHours(0, 0, 0, 0);
@@ -76,24 +77,33 @@ const getTodaySummary = async (req, res) => {
 
         return res.json(summary);
     } catch (error) {
-        console.error("Get Today Summary Error:", error);
-        return res.status(500).json({ message: "Internal server error" });
+        next(error);
     }
 };
 
-const getSummaryByRange = async (req, res) => {
+const getSummaryByRange = async (req, res, next) => {
     try {
         const { start, end } = req.query;
 
         if (!start || !end) {
-            return res.status(400).json({ message: "Start and end dates are required" });
+            throw new ApiError(400, "Start and end dates are required");
         }
 
         const startDate = new Date(start);
+        if (isNaN(startDate.getTime())) {
+            throw new ApiError(400, "Invalid start date");
+        }
         startDate.setUTCHours(0, 0, 0, 0);
 
         const endDate = new Date(end);
+        if (isNaN(endDate.getTime())) {
+            throw new ApiError(400, "Invalid end date");
+        }
         endDate.setUTCHours(23, 59, 59, 999);
+
+        if (startDate > endDate) {
+            throw new ApiError(400, "Start date cannot be after end date");
+        }
 
         const summaries = await prisma.dailySummary.findMany({
             where: {
@@ -110,8 +120,7 @@ const getSummaryByRange = async (req, res) => {
 
         return res.json(summaries);
     } catch (error) {
-        console.error("Get Range Summary Error:", error);
-        return res.status(500).json({ message: "Internal server error" });
+        next(error);
     }
 };
 

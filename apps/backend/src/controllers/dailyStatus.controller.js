@@ -1,15 +1,20 @@
 const prisma = require("../configs/prisma").prisma;
 const { calculateAndSaveSummary } = require("./summary.controller");
+const ApiError = require("../utils/ApiError");
 
 const normalizeDate = (dateString) => {
     const date = dateString ? new Date(dateString) : new Date();
+    if (isNaN(date.getTime())) {
+        throw new ApiError(400, "Invalid date format");
+    }
     date.setUTCHours(0, 0, 0, 0);
     return date;
 };
 
-const getDailyStatus = async (req, res) => {
+const getDailyStatus = async (req, res, next) => {
     try {
         const { date } = req.query;
+        // normalizeDate will throw if date is invalid
         const queryDate = normalizeDate(date);
 
         const tasks = await prisma.task.findMany({
@@ -70,17 +75,22 @@ const getDailyStatus = async (req, res) => {
 
         return res.json(dailyStatuses);
     } catch (error) {
-        console.error("Get Daily Status Error:", error);
-        return res.status(500).json({ message: "Internal server error" });
+        next(error);
     }
 };
 
-const updateDailyStatus = async (req, res) => {
+const updateDailyStatus = async (req, res, next) => {
     try {
         const { taskId, date, isCompleted } = req.body;
 
-        if (!taskId || !date || isCompleted === undefined) {
-            return res.status(400).json({ message: "Missing required fields" });
+        if (!taskId) {
+            throw new ApiError(400, "Task ID is required");
+        }
+        if (!date) {
+            throw new ApiError(400, "Date is required");
+        }
+        if (isCompleted === undefined) {
+            throw new ApiError(400, "isCompleted status is required");
         }
 
         const statusDate = normalizeDate(date);
@@ -89,8 +99,16 @@ const updateDailyStatus = async (req, res) => {
             where: { id: taskId },
         });
 
-        if (!task || task.userId !== req.user.id) {
-            return res.status(403).json({ message: "Unauthorized access to task" });
+        if (!task) {
+            throw new ApiError(404, "Task not found");
+        }
+
+        if (task.userId !== req.user.id) {
+            throw new ApiError(403, "Unauthorized access to task");
+        }
+
+        if (!task.isActive) {
+            throw new ApiError(400, "Cannot update status for an inactive task");
         }
 
         const status = await prisma.dailyTaskStatus.upsert({
@@ -115,8 +133,7 @@ const updateDailyStatus = async (req, res) => {
 
         return res.json(status);
     } catch (error) {
-        console.error("Update Daily Status Error:", error);
-        return res.status(500).json({ message: "Internal server error" });
+        next(error);
     }
 };
 

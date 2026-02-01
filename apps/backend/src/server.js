@@ -5,6 +5,7 @@ const authRouter = require("./routes/auth.routes.js");
 const tasksRouter = require("./routes/tasks.routes.js");
 const dailyStatusRouter = require("./routes/dailyStatus.routes.js");
 const summaryRouter = require("./routes/summary.routes.js");
+const errorHandler = require("./middlewares/error.middleware.js");
 require("dotenv").config();
 
 const app = express();
@@ -22,6 +23,8 @@ app.use("/api/summary", summaryRouter);
 app.get("/", (req, res) => {
   res.status(200).send("<h1>Backend Running Successfully 🚀</h1>");
 });
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { Task, DailyStatusData, DashboardStats } from "../app/dashboard/types/dashboard";
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -51,15 +52,47 @@ api.interceptors.response.use(
     }
 );
 
-export const apiFetch = async <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
+interface ApiRequestOptions {
+    method?: string;
+    headers?: Record<string, string>;
+    body?: any;
+}
+
+export const apiFetch = async <T>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> => {
     const { method = "GET", headers = {}, body } = options;
 
     const response = await api.request<T>({
         url: endpoint,
         method,
-        headers: headers as any,
+        headers: headers,
         data: body,
     });
 
     return response.data;
+};
+
+export const authApi = {
+    register: (data: any) => apiFetch<any>("/api/auth/register", { method: "POST", body: data }),
+    login: (data: any) => apiFetch<any>("/api/auth/login", { method: "POST", body: data }),
+    logout: () => apiFetch<void>("/api/auth/logout", { method: "POST" }),
+    getMe: () => apiFetch<any>("/api/auth/me"),
+    refreshToken: () => apiFetch<void>("/api/auth/refresh", { method: "POST" }),
+};
+
+export const tasksApi = {
+    getTasks: () => apiFetch<Task[]>("/api/tasks"),
+    createTask: (data: Partial<Task>) => apiFetch<Task>("/api/tasks", { method: "POST", body: data }),
+    updateTask: (id: string, data: Partial<Task>) => apiFetch<Task>(`/api/tasks/${id}`, { method: "PUT", body: data }),
+    deleteTask: (id: string) => apiFetch<void>(`/api/tasks/${id}`, { method: "DELETE" }),
+};
+
+export const dailyStatusApi = {
+    getDailyStatus: () => apiFetch<DailyStatusData>("/api/daily-status"),
+    updateDailyStatus: (data: Partial<DailyStatusData>) => apiFetch<DailyStatusData>("/api/daily-status", { method: "POST", body: data }),
+};
+
+export const summaryApi = {
+    getTodaySummary: () => apiFetch<DashboardStats>("/api/summary/today"),
+    getSummaryByRange: (startDate: string, endDate: string) =>
+        apiFetch<DashboardStats[]>(`/api/summary/range?startDate=${startDate}&endDate=${endDate}`),
 };

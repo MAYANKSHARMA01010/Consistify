@@ -22,6 +22,7 @@ export default function RegisterPage() {
     useEffect(() => {
         if (!loading && isLoggedIn) {
             router.replace("/dashboard");
+            toast.success("Welcome back!");
         }
     }, [isLoggedIn, loading, router]);
 

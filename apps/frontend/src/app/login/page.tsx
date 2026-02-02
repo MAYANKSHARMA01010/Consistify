@@ -17,6 +17,7 @@ export default function LoginPage() {
     useEffect(() => {
         if (!loading && isLoggedIn) {
             router.replace("/dashboard");
+            toast.success("Welcome back!")
         }
     }, [isLoggedIn, loading, router]);
 

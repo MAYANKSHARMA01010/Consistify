@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { loginSchema } from "../../utils/validators";
 import toast from "react-hot-toast";
+import { getErrorMessage } from "../../utils/api";
 
 export default function LoginPage() {
     const { login, isLoggedIn, loading } = useAuth();
@@ -39,11 +40,9 @@ export default function LoginPage() {
 
         try {
             await login({ email, password });
-            toast.success("Welcome back!");
             router.push("/dashboard");
         } catch (err: any) {
-            const message = err.response?.data?.message || err.response?.data?.error || err.message || "Failed to login";
-            toast.error(message);
+            toast.error(getErrorMessage(err));
         } finally {
             setIsSubmitting(false);
         }

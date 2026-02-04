@@ -6,6 +6,7 @@ import Link from "next/link";
 import { registerSchema } from "../../utils/validators";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { getErrorMessage } from "../../utils/api";
 
 export default function RegisterPage() {
     const { register, isLoggedIn, loading } = useAuth();
@@ -56,8 +57,7 @@ export default function RegisterPage() {
             toast.success("Account created successfully!");
             router.push("/login");
         } catch (err: any) {
-            const message = err.response?.data?.message || err.response?.data?.error || err.message || "Failed to register";
-            toast.error(message);
+            toast.error(getErrorMessage(err));
         } finally {
             setIsSubmitting(false);
         }

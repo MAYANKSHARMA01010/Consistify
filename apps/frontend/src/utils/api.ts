@@ -24,7 +24,7 @@ api.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
-        if (error.response?.status === 401 && !originalRequest._retry && !error.config.url?.includes("/refresh")) {
+        if (error.response?.status === 401 && !originalRequest._retry && !error.config.url?.includes("/refresh") && !error.config.url?.includes("/login")) {
             originalRequest._retry = true;
 
             if (!isRefreshing) {
@@ -95,4 +95,11 @@ export const summaryApi = {
     getTodaySummary: () => apiFetch<DashboardStats>("/api/summary/today"),
     getSummaryByRange: (startDate: string, endDate: string) =>
         apiFetch<DashboardStats[]>(`/api/summary/range?startDate=${startDate}&endDate=${endDate}`),
+};
+
+export const getErrorMessage = (error: any): string => {
+    if (axios.isAxiosError(error)) {
+        return error.response?.data?.message || error.response?.data?.error || error.message;
+    }
+    return error instanceof Error ? error.message : "Something went wrong";
 };

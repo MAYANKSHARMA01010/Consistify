@@ -110,8 +110,8 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onRefresh 
                                     } ${togglingTaskId === task.id ? "pointer-events-none opacity-50" : ""}`}
                             >
                                 <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${task.completed
-                                        ? "bg-green-500 border-green-500 text-white"
-                                        : "border-gray-300 dark:border-gray-500 group-hover:border-indigo-500"
+                                    ? "bg-green-500 border-green-500 text-white"
+                                    : "border-gray-300 dark:border-gray-500 group-hover:border-indigo-500"
                                     }`}>
                                     {task.completed && (
                                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -122,10 +122,10 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onRefresh 
 
                                 <div className="flex-1 min-w-0">
                                     <p className={`text-sm font-medium truncate ${task.completed
-                                            ? "text-gray-500 line-through decoration-gray-400"
-                                            : "text-gray-900 dark:text-white"
+                                        ? "text-gray-500 line-through decoration-gray-400"
+                                        : "text-gray-900 dark:text-white"
                                         }`}>
-                                        {task.title}
+                                        {task.taskTitle || task.title}
                                     </p>
                                     {task.endDate && !task.completed && (
                                         <p className="text-xs text-gray-400 mt-0.5">
@@ -135,8 +135,8 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onRefresh 
                                 </div>
 
                                 {!task.completed && (
-                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${getPriorityColor(task.priority)}`}>
-                                        {task.priority}
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${getPriorityColor(task.taskPriority || task.priority)}`}>
+                                        {task.taskPriority || task.priority}
                                     </span>
                                 )}
                             </li>

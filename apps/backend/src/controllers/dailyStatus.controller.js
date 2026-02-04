@@ -49,6 +49,8 @@ const getDailyStatus = async (req, res, next) => {
                             taskId: task.id,
                             date: queryDate,
                             isCompleted: false,
+                            taskTitle: task.title,
+                            taskPriority: task.priority,
                         },
                     });
                 }
@@ -59,17 +61,12 @@ const getDailyStatus = async (req, res, next) => {
             where: {
                 userId: req.user.id,
                 date: queryDate,
-                task: {
-                    isActive: true,
-                }
             },
             include: {
                 task: true,
             },
             orderBy: {
-                task: {
-                    createdAt: "desc",
-                },
+                createdAt: "desc",
             },
         });
 
@@ -126,6 +123,8 @@ const updateDailyStatus = async (req, res, next) => {
                 taskId,
                 date: statusDate,
                 isCompleted,
+                taskTitle: task.title,
+                taskPriority: task.priority,
             },
         });
 

@@ -19,6 +19,8 @@ export interface Task {
     priority: Priority;
     startDate: string;
     endDate?: string | null;
+    taskTitle?: string | null;    // Snapshot title
+    taskPriority?: Priority | null; // Snapshot priority
 }
 
 export interface DailyStatusData {

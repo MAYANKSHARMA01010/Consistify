@@ -56,7 +56,9 @@ const getTasks = async (req, res, next) => {
                         date: today
                     },
                     select: {
-                        isCompleted: true
+                        isCompleted: true,
+                        taskTitle: true,
+                        taskPriority: true,
                     }
                 }
             },
@@ -65,11 +67,16 @@ const getTasks = async (req, res, next) => {
             },
         });
 
-        const tasksWithCompletion = tasks.map(task => ({
-            ...task,
-            completed: task.dailyStatus?.[0]?.isCompleted || false,
-            dailyStatus: undefined
-        }));
+        const tasksWithCompletion = tasks.map(task => {
+            const status = task.dailyStatus?.[0];
+            return {
+                ...task,
+                completed: status?.isCompleted || false,
+                taskTitle: status?.taskTitle || task.title,
+                taskPriority: status?.taskPriority || task.priority,
+                dailyStatus: undefined
+            };
+        });
 
         return res.json(tasksWithCompletion);
     } catch (error) {

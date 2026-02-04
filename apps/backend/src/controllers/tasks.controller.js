@@ -27,6 +27,7 @@ const createTask = async (req, res, next) => {
         const task = await prisma.task.create({
             data: {
                 title: title.trim(),
+                priority: req.body.priority || "MEDIUM",
                 startDate: new Date(startDate),
                 endDate: endDate ? new Date(endDate) : null,
                 userId: req.user.id,
@@ -41,17 +42,36 @@ const createTask = async (req, res, next) => {
 
 const getTasks = async (req, res, next) => {
     try {
+        const today = new Date();
+        today.setUTCHours(0, 0, 0, 0);
+
         const tasks = await prisma.task.findMany({
             where: {
                 userId: req.user.id,
                 isActive: true,
+            },
+            include: {
+                dailyStatus: {
+                    where: {
+                        date: today
+                    },
+                    select: {
+                        isCompleted: true
+                    }
+                }
             },
             orderBy: {
                 createdAt: "desc",
             },
         });
 
-        return res.json(tasks);
+        const tasksWithCompletion = tasks.map(task => ({
+            ...task,
+            completed: task.dailyStatus?.[0]?.isCompleted || false,
+            dailyStatus: undefined
+        }));
+
+        return res.json(tasksWithCompletion);
     } catch (error) {
         next(error);
     }
@@ -92,6 +112,7 @@ const updateTask = async (req, res, next) => {
             where: { id },
             data: {
                 title: title ? title.trim() : undefined,
+                priority: req.body.priority || undefined,
                 startDate: startDate ? new Date(startDate) : undefined,
                 endDate: endDate ? new Date(endDate) : undefined,
             },

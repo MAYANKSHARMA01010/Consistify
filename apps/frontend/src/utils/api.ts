@@ -88,7 +88,8 @@ export const tasksApi = {
 
 export const dailyStatusApi = {
     getDailyStatus: () => apiFetch<DailyStatusData>("/api/daily-status"),
-    updateDailyStatus: (data: Partial<DailyStatusData>) => apiFetch<DailyStatusData>("/api/daily-status", { method: "POST", body: data }),
+    updateDailyStatus: (data: { taskId: string; date: string; isCompleted: boolean }) =>
+        apiFetch<{ id: string; isCompleted: boolean }>("/api/daily-status", { method: "POST", body: data }),
 };
 
 export const summaryApi = {

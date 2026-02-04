@@ -12,13 +12,25 @@ enum Role {
   ADMIN
 }
 
+enum Mood {
+  LOW
+  NORMAL
+  HIGH
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
 model User {
-  id        String   @id @default(uuid())
-  name      String
-  username  String   @unique
-  email     String   @unique
-  password  String?
-  role      Role     @default(USER)
+  id       String  @id @default(uuid())
+  name     String
+  username String  @unique
+  email    String  @unique
+  password String?
+  role     Role    @default(USER)
 
   tasks        Task[]
   dailyStatus  DailyTaskStatus[]
@@ -29,15 +41,16 @@ model User {
 }
 
 model Task {
-  id        String   @id @default(uuid())
+  id       String   @id @default(uuid())
   userId   String
   title    String
   isActive Boolean  @default(true)
+  priority Priority @default(MEDIUM)
 
   startDate DateTime
   endDate   DateTime?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   dailyStatus DailyTaskStatus[]
 
   createdAt DateTime @default(now())
@@ -47,11 +60,11 @@ model Task {
 }
 
 model DailyTaskStatus {
-  id        String   @id @default(uuid())
-  userId   String
-  taskId   String
-  date     DateTime
-  isCompleted Boolean @default(false)
+  id          String   @id @default(uuid())
+  userId      String
+  taskId      String
+  date        DateTime
+  isCompleted Boolean  @default(false)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
@@ -64,14 +77,16 @@ model DailyTaskStatus {
 }
 
 model DailySummary {
-  id        String   @id @default(uuid())
-  userId   String
-  date     DateTime
+  id     String   @id @default(uuid())
+  userId String
+  date   DateTime
 
   completedTasks Int
   totalTasks     Int
   points         Int
   consistency    Float
+  focus          String?
+  mood           Mood?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

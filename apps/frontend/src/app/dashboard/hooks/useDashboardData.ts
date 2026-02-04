@@ -2,12 +2,17 @@ import { useState, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
 import { DashboardStats, Task, DailyStatusData } from "../types/dashboard";
 import { summaryApi, tasksApi, dailyStatusApi } from "../../../utils/api";
+import { Priority } from "../types/dashboard";
 
 export const useDashboardData = (isLoggedIn: boolean) => {
     const [stats, setStats] = useState<DashboardStats>({
         completedToday: 0,
         streak: 0,
-        pendingTasks: 0
+        pendingTasks: 0,
+        pointsToday: 0,
+        consistency: 0,
+        focus: null,
+        mood: null
     });
 
     const [dailyStatus, setDailyStatus] = useState<DailyStatusData | null>(null);
@@ -41,9 +46,14 @@ export const useDashboardData = (isLoggedIn: boolean) => {
         fetchDashboardData();
     }, [fetchDashboardData]);
 
-    const addTask = async (title: string) => {
+    const addTask = async (title: string, priority: Priority = "MEDIUM") => {
         try {
-            await tasksApi.createTask({ title, completed: false });
+            const today = new Date().toISOString().split('T')[0];
+            await tasksApi.createTask({
+                title,
+                priority,
+                startDate: today
+            });
             toast.success("Task created!");
 
             const updatedTasks = await tasksApi.getTasks();

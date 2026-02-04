@@ -52,6 +52,34 @@ const calculateAndSaveSummary = async (userId, date) => {
     }
 };
 
+const calculateStreak = async (userId) => {
+    const summaries = await prisma.dailySummary.findMany({
+        where: { userId },
+        orderBy: { date: "desc" },
+        take: 365,
+        select: { date: true, completedTasks: true, totalTasks: true },
+    });
+
+    let streak = 0;
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+
+    for (let i = 0; i < summaries.length; i++) {
+        const summaryDate = new Date(summaries[i].date);
+        summaryDate.setUTCHours(0, 0, 0, 0);
+
+        const expectedDate = new Date(today);
+        expectedDate.setDate(expectedDate.getDate() - i);
+
+        if (summaryDate.getTime() !== expectedDate.getTime()) break;
+        if (summaries[i].completedTasks === 0) break;
+
+        streak++;
+    }
+
+    return streak;
+};
+
 const getTodaySummary = async (req, res, next) => {
     try {
         const today = new Date();
@@ -66,16 +94,27 @@ const getTodaySummary = async (req, res, next) => {
             },
         });
 
-        if (!summary) {
-            return res.json({
-                totalTasks: 0,
-                completedTasks: 0,
-                points: 0,
-                consistency: 0,
-            });
-        }
+        const pendingTasks = await prisma.task.count({
+            where: {
+                userId: req.user.id,
+                isActive: true,
+            },
+        });
 
-        return res.json(summary);
+        const streak = await calculateStreak(req.user.id);
+
+        const completedToday = summary?.completedTasks || 0;
+        const pointsToday = summary?.points || 0;
+
+        return res.json({
+            completedToday,
+            pendingTasks,
+            streak,
+            pointsToday,
+            consistency: summary?.consistency || 0,
+            focus: summary?.focus || null,
+            mood: summary?.mood || null,
+        });
     } catch (error) {
         next(error);
     }

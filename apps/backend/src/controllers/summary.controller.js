@@ -163,8 +163,44 @@ const getSummaryByRange = async (req, res, next) => {
     }
 };
 
+const updateTodaySummary = async (req, res, next) => {
+    try {
+        const { focus, mood } = req.body;
+        const today = new Date();
+        today.setUTCHours(0, 0, 0, 0);
+
+        const summary = await prisma.dailySummary.upsert({
+            where: {
+                userId_date: {
+                    userId: req.user.id,
+                    date: today,
+                },
+            },
+            update: {
+                focus,
+                mood,
+            },
+            create: {
+                userId: req.user.id,
+                date: today,
+                focus,
+                mood,
+                completedTasks: 0,
+                totalTasks: 0,
+                points: 0,
+                consistency: 0,
+            },
+        });
+
+        return res.json(summary);
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     calculateAndSaveSummary,
     getTodaySummary,
     getSummaryByRange,
+    updateTodaySummary,
 };

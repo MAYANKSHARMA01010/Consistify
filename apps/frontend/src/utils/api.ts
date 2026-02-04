@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Task, DailyStatusData, DashboardStats } from "../app/dashboard/types/dashboard";
+import { Task, DailyStatusData, DashboardStats, Mood } from "../app/dashboard/types/dashboard";
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -94,6 +94,8 @@ export const dailyStatusApi = {
 
 export const summaryApi = {
     getTodaySummary: () => apiFetch<DashboardStats>("/api/summary/today"),
+    updateTodaySummary: (data: { focus?: string; mood?: Mood }) =>
+        apiFetch<DashboardStats>("/api/summary/today", { method: "PATCH", body: data }),
     getSummaryByRange: (startDate: string, endDate: string) =>
         apiFetch<DashboardStats[]>(`/api/summary/range?startDate=${startDate}&endDate=${endDate}`),
 };

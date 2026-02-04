@@ -29,6 +29,7 @@ export default function DashboardPage() {
         dailyStatus,
         isLoading: dataLoading,
         addTask,
+        updateDailyStatus,
         refetch
     } = useDashboardData(!!isLoggedIn);
 
@@ -109,13 +110,24 @@ export default function DashboardPage() {
 
                     <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-1">
-                            {dailyStatus ? (
-                                <DailyStatus {...dailyStatus} />
+                            {stats.focus || stats.mood ? (
+                                <DailyStatus
+                                    date={new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                                    focus={stats.focus || ""}
+                                    mood={stats.mood || "NORMAL"}
+                                    onUpdate={updateDailyStatus}
+                                />
                             ) : (
                                 <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 h-full flex flex-col items-center justify-center text-center min-h-[200px]">
                                     <span className="text-4xl mb-4">📝</span>
                                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">No Focus Set</h3>
-                                    <p className="text-gray-500 text-sm mt-2">Define your focus for today</p>
+                                    <p className="text-gray-500 text-sm mt-2 mb-4">Define your focus for today</p>
+                                    <button
+                                        onClick={() => updateDailyStatus({ focus: "Today's Main Goal", mood: "NORMAL" })}
+                                        className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline text-sm"
+                                    >
+                                        Set Default Focus & Energy
+                                    </button>
                                 </div>
                             )}
                         </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
-import { DashboardStats, Task, DailyStatusData } from "../types/dashboard";
+import { DashboardStats, Task, DailyStatusData, Mood } from "../types/dashboard";
 import { summaryApi, tasksApi, dailyStatusApi } from "../../../utils/api";
 import { Priority } from "../types/dashboard";
 
@@ -66,12 +66,24 @@ export const useDashboardData = (isLoggedIn: boolean) => {
         }
     };
 
+    const updateDailyStatus = async (data: { focus?: string; mood?: Mood }) => {
+        try {
+            await summaryApi.updateTodaySummary(data);
+            toast.success("Status updated!");
+            await fetchDashboardData();
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to update status");
+        }
+    };
+
     return {
         stats,
         dailyStatus,
         tasks,
         isLoading,
         refetch: fetchDashboardData,
-        addTask
+        addTask,
+        updateDailyStatus
     };
 };

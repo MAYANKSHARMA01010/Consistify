@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { StatsCard } from "./components/StatsCard";
 import { DailyStatus } from "./components/DailyStatus";
 import { TaskList } from "./components/TaskList";
+import { DailyHistory } from "./components/DailyHistory";
 
 import { useDashboardData } from "./hooks/useDashboardData";
 
@@ -30,6 +31,7 @@ export default function DashboardPage() {
         isLoading: dataLoading,
         addTask,
         updateDailyStatus,
+        history,
         refetch
     } = useDashboardData(!!isLoggedIn);
 
@@ -135,6 +137,10 @@ export default function DashboardPage() {
                         <div className="lg:col-span-2">
                             <TaskList tasks={tasks} onAddTask={addTask} onRefresh={refetch} />
                         </div>
+                    </section>
+
+                    <section>
+                        <DailyHistory history={history} />
                     </section>
 
                 </div>

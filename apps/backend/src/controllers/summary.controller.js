@@ -6,6 +6,44 @@ const calculateAndSaveSummary = async (userId, date) => {
         const summaryDate = new Date(date);
         summaryDate.setUTCHours(0, 0, 0, 0);
 
+        const activeTasks = await prisma.task.findMany({
+            where: {
+                userId,
+                isActive: true,
+                startDate: { lte: summaryDate },
+                OR: [
+                    { endDate: null },
+                    { endDate: { gte: summaryDate } }
+                ]
+            }
+        });
+
+        await Promise.all(
+            activeTasks.map(async (task) => {
+                const existing = await prisma.dailyTaskStatus.findUnique({
+                    where: {
+                        taskId_date: {
+                            taskId: task.id,
+                            date: summaryDate,
+                        },
+                    },
+                });
+
+                if (!existing) {
+                    await prisma.dailyTaskStatus.create({
+                        data: {
+                            userId,
+                            taskId: task.id,
+                            date: summaryDate,
+                            isCompleted: false,
+                            taskTitle: task.title,
+                            taskPriority: task.priority,
+                        },
+                    });
+                }
+            })
+        );
+
         const statuses = await prisma.dailyTaskStatus.findMany({
             where: {
                 userId,
@@ -25,6 +63,20 @@ const calculateAndSaveSummary = async (userId, date) => {
             consistency = (completedTasks / totalTasks) * 100;
         }
 
+        const yesterday = new Date(summaryDate);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        const previousSummary = await prisma.dailySummary.findUnique({
+            where: {
+                userId_date: {
+                    userId,
+                    date: yesterday,
+                },
+            },
+        });
+
+        const cumulativePoints = (previousSummary?.cumulativePoints || 0) + points;
+
         const summary = await prisma.dailySummary.upsert({
             where: {
                 userId_date: {
@@ -36,6 +88,7 @@ const calculateAndSaveSummary = async (userId, date) => {
                 totalTasks,
                 completedTasks,
                 points,
+                cumulativePoints,
                 consistency,
             },
             create: {
@@ -44,9 +97,26 @@ const calculateAndSaveSummary = async (userId, date) => {
                 totalTasks,
                 completedTasks,
                 points,
+                cumulativePoints,
                 consistency,
             },
         });
+
+        await prisma.taskAuditLog.deleteMany({
+            where: { summaryId: summary.id }
+        });
+
+        if (statuses.length > 0) {
+            await prisma.taskAuditLog.createMany({
+                data: statuses.map(s => ({
+                    summaryId: summary.id,
+                    taskId: s.taskId,
+                    title: s.taskTitle || "Untitled Task",
+                    priority: s.taskPriority || "MEDIUM",
+                    completed: s.isCompleted
+                }))
+            });
+        }
 
         return summary;
     } catch (error) {
@@ -103,15 +173,41 @@ const calculateWeeklyPoints = async (userId) => {
     return result._sum.points || 0;
 };
 
+const ensureHistoricalSummaries = async (userId) => {
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+
+    for (let i = 0; i <= 7; i++) {
+        const targetDate = new Date(today);
+        targetDate.setDate(targetDate.getDate() - i);
+
+        const existingSummary = await prisma.dailySummary.findUnique({
+            where: {
+                userId_date: {
+                    userId,
+                    date: targetDate,
+                },
+            },
+        });
+
+        if (!existingSummary || i === 0) {
+            await calculateAndSaveSummary(userId, targetDate);
+        }
+    }
+};
+
 const getTodaySummary = async (req, res, next) => {
     try {
+        const userId = req.user.id;
         const today = new Date();
         today.setUTCHours(0, 0, 0, 0);
+
+        await ensureHistoricalSummaries(userId);
 
         const summary = await prisma.dailySummary.findUnique({
             where: {
                 userId_date: {
-                    userId: req.user.id,
+                    userId,
                     date: today,
                 },
             },
@@ -185,12 +281,27 @@ const getSummaryByRange = async (req, res, next) => {
                     lte: endDate,
                 },
             },
+            include: {
+                auditLogs: true
+            },
             orderBy: {
                 date: "asc",
             },
         });
 
-        return res.json(summaries);
+        const summariesWithTasks = summaries.map(s => ({
+            ...s,
+            tasks: s.auditLogs.map(log => ({
+                id: log.id,
+                taskId: log.taskId,
+                title: log.title,
+                priority: log.priority,
+                isCompleted: log.completed
+            })),
+            auditLogs: undefined
+        }));
+
+        return res.json(summariesWithTasks);
     } catch (error) {
         next(error);
     }
@@ -212,15 +323,18 @@ const updateTodaySummary = async (req, res, next) => {
             update: {
                 focus,
                 mood,
+                notes: req.body.notes,
             },
             create: {
                 userId: req.user.id,
                 date: today,
                 focus,
                 mood,
+                notes: req.body.notes,
                 completedTasks: 0,
                 totalTasks: 0,
                 points: 0,
+                cumulativePoints: 0,
                 consistency: 0,
             },
         });

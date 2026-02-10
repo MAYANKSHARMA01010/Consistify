@@ -20,8 +20,8 @@ export interface Task {
     priority: Priority;
     startDate: string;
     endDate?: string | null;
-    taskTitle?: string | null;    // Snapshot title
-    taskPriority?: Priority | null; // Snapshot priority
+    taskTitle?: string | null;
+    taskPriority?: Priority | null;
 }
 
 export interface DailyStatusData {
@@ -36,15 +36,26 @@ export interface ChartDataPoint {
     value: number;
 }
 
+export interface DailyTaskStatusSnapshot {
+    id: string;
+    taskId: string;
+    title: string;
+    priority: Priority;
+    isCompleted: boolean;
+}
+
 export interface DailySummary {
     id: string;
     date: string;
     completedTasks: number;
     totalTasks: number;
     points: number;
+    cumulativePoints: number;
     consistency: number;
     focus?: string | null;
     mood?: Mood | null;
+    notes?: string | null;
+    tasks?: DailyTaskStatusSnapshot[];
 }
 
 export interface WeeklySummaryData {

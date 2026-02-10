@@ -14,7 +14,6 @@ const normalizeDate = (dateString) => {
 const getDailyStatus = async (req, res, next) => {
     try {
         const { date } = req.query;
-        // normalizeDate will throw if date is invalid
         const queryDate = normalizeDate(date);
 
         const tasks = await prisma.task.findMany({

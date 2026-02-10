@@ -83,17 +83,36 @@ model DailySummary {
   userId String
   date   DateTime
 
-  completedTasks Int
-  totalTasks     Int
-  points         Int
-  consistency    Float
-  focus          String?
-  mood           Mood?
+  completedTasks   Int
+  totalTasks       Int
+  points           Int
+  cumulativePoints Int     @default(0)
+  consistency      Float
+  focus            String?
+  mood             Mood?
+  notes            String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  auditLogs TaskAuditLog[]
 
   createdAt DateTime @default(now())
 
   @@unique([userId, date])
   @@index([userId, date])
+}
+
+model TaskAuditLog {
+  id        String   @id @default(uuid())
+  summaryId String
+  taskId    String
+  title     String
+  priority  Priority
+  completed Boolean  @default(false)
+
+  summary DailySummary @relation(fields: [summaryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([summaryId])
 }

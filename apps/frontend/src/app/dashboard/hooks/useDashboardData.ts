@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
-import { DashboardStats, Task, DailyStatusData, Mood } from "../types/dashboard";
+import { DashboardStats, Task, DailyStatusData, Mood, DailySummary } from "../types/dashboard";
 import { summaryApi, tasksApi, dailyStatusApi } from "../../../utils/api";
 import { Priority } from "../types/dashboard";
 
@@ -18,6 +18,7 @@ export const useDashboardData = (isLoggedIn: boolean) => {
 
     const [dailyStatus, setDailyStatus] = useState<DailyStatusData | null>(null);
     const [tasks, setTasks] = useState<Task[]>([]);
+    const [history, setHistory] = useState<DailySummary[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const fetchDashboardData = useCallback(async () => {
@@ -26,15 +27,22 @@ export const useDashboardData = (isLoggedIn: boolean) => {
         try {
             setIsLoading(true);
 
-            const [statsData, tasksData, statusData] = await Promise.all([
+            const today = new Date().toISOString().split('T')[0];
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            const startDate = sevenDaysAgo.toISOString().split('T')[0];
+
+            const [statsData, tasksData, statusData, historyData] = await Promise.all([
                 summaryApi.getTodaySummary(),
                 tasksApi.getTasks(),
-                dailyStatusApi.getDailyStatus().catch(() => null)
+                dailyStatusApi.getDailyStatus().catch(() => null),
+                summaryApi.getSummaryByRange(startDate, today).catch(() => [])
             ]);
 
             setStats(statsData);
             setTasks(tasksData);
             setDailyStatus(statusData);
+            setHistory([...historyData].reverse());
         } catch (error) {
             console.error("Failed to fetch dashboard data:", error);
             toast.error("Failed to load dashboard data");
@@ -67,7 +75,7 @@ export const useDashboardData = (isLoggedIn: boolean) => {
         }
     };
 
-    const updateDailyStatus = async (data: { focus?: string; mood?: Mood }) => {
+    const updateDailyStatus = async (data: { focus?: string; mood?: Mood; notes?: string }) => {
         try {
             await summaryApi.updateTodaySummary(data);
             toast.success("Status updated!");
@@ -82,6 +90,7 @@ export const useDashboardData = (isLoggedIn: boolean) => {
         stats,
         dailyStatus,
         tasks,
+        history,
         isLoading,
         refetch: fetchDashboardData,
         addTask,

@@ -10,6 +10,7 @@ export const useDashboardData = (isLoggedIn: boolean) => {
         streak: 0,
         pendingTasks: 0,
         pointsToday: 0,
+        pointsLastWeek: 0,
         consistency: 0,
         focus: null,
         mood: null

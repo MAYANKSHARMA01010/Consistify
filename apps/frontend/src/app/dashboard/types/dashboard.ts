@@ -6,6 +6,7 @@ export interface DashboardStats {
     streak: number;
     pendingTasks: number;
     pointsToday: number;
+    pointsLastWeek: number;
     consistency: number;
     focus: string | null;
     mood: Mood | null;

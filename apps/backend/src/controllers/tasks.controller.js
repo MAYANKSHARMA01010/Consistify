@@ -1,5 +1,6 @@
 const prisma = require("../configs/prisma");
 const ApiError = require("../utils/ApiError");
+const { calculateAndSaveSummary } = require("./summary.controller");
 
 const createTask = async (req, res, next) => {
     try {
@@ -151,6 +152,10 @@ const deleteTask = async (req, res, next) => {
             where: { id },
             data: { isActive: false },
         });
+
+        const today = new Date();
+        today.setUTCHours(0, 0, 0, 0);
+        await calculateAndSaveSummary(req.user.id, today);
 
         return res.json({ success: true, message: "Task deleted successfully" });
     } catch (error) {

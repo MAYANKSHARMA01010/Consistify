@@ -10,6 +10,9 @@ const calculateAndSaveSummary = async (userId, date) => {
             where: {
                 userId,
                 date: summaryDate,
+                task: {
+                    isActive: true
+                }
             },
         });
 
@@ -80,6 +83,26 @@ const calculateStreak = async (userId) => {
     return streak;
 };
 
+const calculateWeeklyPoints = async (userId) => {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setUTCHours(0, 0, 0, 0);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const result = await prisma.dailySummary.aggregate({
+        where: {
+            userId,
+            date: {
+                gte: sevenDaysAgo,
+            },
+        },
+        _sum: {
+            points: true,
+        },
+    });
+
+    return result._sum.points || 0;
+};
+
 const getTodaySummary = async (req, res, next) => {
     try {
         const today = new Date();
@@ -98,10 +121,19 @@ const getTodaySummary = async (req, res, next) => {
             where: {
                 userId: req.user.id,
                 isActive: true,
+                NOT: {
+                    dailyStatus: {
+                        some: {
+                            date: today,
+                            isCompleted: true,
+                        },
+                    },
+                },
             },
         });
 
         const streak = await calculateStreak(req.user.id);
+        const pointsLastWeek = await calculateWeeklyPoints(req.user.id);
 
         const completedToday = summary?.completedTasks || 0;
         const pointsToday = summary?.points || 0;
@@ -111,6 +143,7 @@ const getTodaySummary = async (req, res, next) => {
             pendingTasks,
             streak,
             pointsToday,
+            pointsLastWeek,
             consistency: summary?.consistency || 0,
             focus: summary?.focus || null,
             mood: summary?.mood || null,

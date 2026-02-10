@@ -101,8 +101,8 @@ export default function DashboardPage() {
                             icon={<span className="text-orange-500">🔥</span>}
                         />
                         <StatsCard
-                            title="Points Today"
-                            value={stats.pointsToday}
+                            title="Points (Last 7 Days)"
+                            value={stats.pointsLastWeek}
                             trend="up"
                             icon={<span className="text-amber-500">⭐</span>}
                         />

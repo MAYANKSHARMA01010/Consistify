@@ -7,6 +7,13 @@ interface DailyHistoryProps {
 
 export const DailyHistory: React.FC<DailyHistoryProps> = ({ history }) => {
     const [expandedDay, setExpandedDay] = useState<string | null>(null);
+    const [loadingDetails, setLoadingDetails] = useState<Record<string, boolean>>({});
+    const [localHistory, setLocalHistory] = useState<DailySummary[]>(history);
+
+    // Sync local history when prop changes
+    React.useEffect(() => {
+        setLocalHistory(history);
+    }, [history]);
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -35,8 +42,27 @@ export const DailyHistory: React.FC<DailyHistoryProps> = ({ history }) => {
         }
     };
 
-    const toggleExpand = (id: string) => {
-        setExpandedDay(expandedDay === id ? null : id);
+    const toggleExpand = async (id: string) => {
+        if (expandedDay === id) {
+            setExpandedDay(null);
+            return;
+        }
+
+        setExpandedDay(id);
+
+        const day = localHistory.find(d => d.id === id);
+        if (day && (!day.tasks || day.tasks.length === 0)) {
+            try {
+                const { summaryApi } = await import('../../../utils/api');
+                setLoadingDetails(prev => ({ ...prev, [id]: true }));
+                const tasks = await summaryApi.getSummaryDetails(id);
+                setLocalHistory(prev => prev.map(d => d.id === id ? { ...d, tasks } : d));
+            } catch (error) {
+                console.error("Failed to fetch audit log details:", error);
+            } finally {
+                setLoadingDetails(prev => ({ ...prev, [id]: false }));
+            }
+        }
     };
 
     return (
@@ -58,14 +84,14 @@ export const DailyHistory: React.FC<DailyHistoryProps> = ({ history }) => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
-                        {history.length === 0 ? (
+                        {localHistory.length === 0 ? (
                             <tr>
                                 <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                                     No history available yet. Keep grinding! 🚀
                                 </td>
                             </tr>
                         ) : (
-                            history.map((day) => (
+                            localHistory.map((day) => (
                                 <React.Fragment key={day.id}>
                                     <tr
                                         onClick={() => toggleExpand(day.id)}
@@ -129,7 +155,12 @@ export const DailyHistory: React.FC<DailyHistoryProps> = ({ history }) => {
                                                             <h4 className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Task Audit Log Snapshot</h4>
                                                             <span className="text-[10px] text-gray-400 italic">Sourced from permanent audit records</span>
                                                         </div>
-                                                        {day.tasks && day.tasks.length > 0 ? (
+                                                        {loadingDetails[day.id] ? (
+                                                            <div className="flex items-center gap-3 py-4">
+                                                                <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                                                                <span className="text-xs text-gray-400">Loading snapshots...</span>
+                                                            </div>
+                                                        ) : day.tasks && day.tasks.length > 0 ? (
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-3">
                                                                 {day.tasks.map((task) => (
                                                                     <div key={task.id} className="flex items-center justify-between gap-4 group">

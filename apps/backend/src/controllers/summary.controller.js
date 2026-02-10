@@ -173,28 +173,6 @@ const calculateWeeklyPoints = async (userId) => {
     return result._sum.points || 0;
 };
 
-const ensureHistoricalSummaries = async (userId) => {
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
-
-    for (let i = 0; i <= 7; i++) {
-        const targetDate = new Date(today);
-        targetDate.setDate(targetDate.getDate() - i);
-
-        const existingSummary = await prisma.dailySummary.findUnique({
-            where: {
-                userId_date: {
-                    userId,
-                    date: targetDate,
-                },
-            },
-        });
-
-        if (!existingSummary || i === 0) {
-            await calculateAndSaveSummary(userId, targetDate);
-        }
-    }
-};
 
 const getTodaySummary = async (req, res, next) => {
     try {
@@ -202,7 +180,7 @@ const getTodaySummary = async (req, res, next) => {
         const today = new Date();
         today.setUTCHours(0, 0, 0, 0);
 
-        await ensureHistoricalSummaries(userId);
+        await calculateAndSaveSummary(userId, today);
 
         const summary = await prisma.dailySummary.findUnique({
             where: {
@@ -281,27 +259,12 @@ const getSummaryByRange = async (req, res, next) => {
                     lte: endDate,
                 },
             },
-            include: {
-                auditLogs: true
-            },
             orderBy: {
                 date: "asc",
             },
         });
 
-        const summariesWithTasks = summaries.map(s => ({
-            ...s,
-            tasks: s.auditLogs.map(log => ({
-                id: log.id,
-                taskId: log.taskId,
-                title: log.title,
-                priority: log.priority,
-                isCompleted: log.completed
-            })),
-            auditLogs: undefined
-        }));
-
-        return res.json(summariesWithTasks);
+        return res.json(summaries);
     } catch (error) {
         next(error);
     }
@@ -345,9 +308,43 @@ const updateTodaySummary = async (req, res, next) => {
     }
 };
 
+const getSummaryDetails = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const summary = await prisma.dailySummary.findUnique({
+            where: { id },
+            include: {
+                auditLogs: true
+            }
+        });
+
+        if (!summary) {
+            throw new ApiError(404, "Summary not found");
+        }
+
+        if (summary.userId !== req.user.id) {
+            throw new ApiError(403, "Unauthorized");
+        }
+
+        const tasks = summary.auditLogs.map(log => ({
+            id: log.id,
+            taskId: log.taskId,
+            title: log.title,
+            priority: log.priority,
+            isCompleted: log.completed
+        }));
+
+        return res.json(tasks);
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     calculateAndSaveSummary,
     getTodaySummary,
     getSummaryByRange,
     updateTodaySummary,
+    getSummaryDetails,
 };

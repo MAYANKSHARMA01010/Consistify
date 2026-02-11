@@ -20,27 +20,23 @@ const calculateAndSaveSummary = async (userId, date) => {
 
         await Promise.all(
             activeTasks.map(async (task) => {
-                const existing = await prisma.dailyTaskStatus.findUnique({
+                await prisma.dailyTaskStatus.upsert({
                     where: {
                         taskId_date: {
                             taskId: task.id,
                             date: summaryDate,
                         },
                     },
+                    update: {}, // Do nothing if it exists
+                    create: {
+                        userId,
+                        taskId: task.id,
+                        date: summaryDate,
+                        isCompleted: false,
+                        taskTitle: task.title,
+                        taskPriority: task.priority,
+                    },
                 });
-
-                if (!existing) {
-                    await prisma.dailyTaskStatus.create({
-                        data: {
-                            userId,
-                            taskId: task.id,
-                            date: summaryDate,
-                            isCompleted: false,
-                            taskTitle: task.title,
-                            taskPriority: task.priority,
-                        },
-                    });
-                }
             })
         );
 

@@ -32,27 +32,23 @@ const getDailyStatus = async (req, res, next) => {
 
         await Promise.all(
             tasks.map(async (task) => {
-                const existing = await prisma.dailyTaskStatus.findUnique({
+                await prisma.dailyTaskStatus.upsert({
                     where: {
                         taskId_date: {
                             taskId: task.id,
                             date: queryDate,
                         },
                     },
+                    update: {}, // Do nothing if it exists
+                    create: {
+                        userId: req.user.id,
+                        taskId: task.id,
+                        date: queryDate,
+                        isCompleted: false,
+                        taskTitle: task.title,
+                        taskPriority: task.priority,
+                    },
                 });
-
-                if (!existing) {
-                    await prisma.dailyTaskStatus.create({
-                        data: {
-                            userId: req.user.id,
-                            taskId: task.id,
-                            date: queryDate,
-                            isCompleted: false,
-                            taskTitle: task.title,
-                            taskPriority: task.priority,
-                        },
-                    });
-                }
             })
         );
 

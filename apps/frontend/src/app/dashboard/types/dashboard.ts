@@ -4,6 +4,7 @@ export type Priority = "LOW" | "MEDIUM" | "HIGH";
 export interface DashboardStats {
     completedToday: number;
     streak: number;
+    maxStreak: number;
     pendingTasks: number;
     pointsToday: number;
     pointsLastWeek: number;

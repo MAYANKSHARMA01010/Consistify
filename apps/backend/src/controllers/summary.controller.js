@@ -77,6 +77,17 @@ const calculateAndSaveSummary = async (userId, date) => {
 
         const cumulativePoints = (previousSummary?.cumulativePoints || 0) + points;
 
+        let currentStreak = 0;
+        if (completedTasks > 0) {
+            currentStreak = (previousSummary?.currentStreak || 0) + 1;
+        } else {
+            // Streak broken for this specific day record if 0 tasks done
+            // However, UI might show previous streak if today is just starting
+            currentStreak = 0;
+        }
+
+        const maxStreak = Math.max(currentStreak, previousSummary?.maxStreak || 0);
+
         const summary = await prisma.dailySummary.upsert({
             where: {
                 userId_date: {
@@ -90,6 +101,8 @@ const calculateAndSaveSummary = async (userId, date) => {
                 points,
                 cumulativePoints,
                 consistency,
+                currentStreak,
+                maxStreak,
             },
             create: {
                 userId,
@@ -99,6 +112,8 @@ const calculateAndSaveSummary = async (userId, date) => {
                 points,
                 cumulativePoints,
                 consistency,
+                currentStreak,
+                maxStreak,
             },
         });
 
@@ -125,33 +140,7 @@ const calculateAndSaveSummary = async (userId, date) => {
     }
 };
 
-const calculateStreak = async (userId) => {
-    const summaries = await prisma.dailySummary.findMany({
-        where: { userId },
-        orderBy: { date: "desc" },
-        take: 365,
-        select: { date: true, completedTasks: true, totalTasks: true },
-    });
 
-    let streak = 0;
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
-
-    for (let i = 0; i < summaries.length; i++) {
-        const summaryDate = new Date(summaries[i].date);
-        summaryDate.setUTCHours(0, 0, 0, 0);
-
-        const expectedDate = new Date(today);
-        expectedDate.setDate(expectedDate.getDate() - i);
-
-        if (summaryDate.getTime() !== expectedDate.getTime()) break;
-        if (summaries[i].completedTasks === 0) break;
-
-        streak++;
-    }
-
-    return streak;
-};
 
 const calculateWeeklyPoints = async (userId) => {
     const sevenDaysAgo = new Date();
@@ -206,16 +195,33 @@ const getTodaySummary = async (req, res, next) => {
             },
         });
 
-        const streak = await calculateStreak(req.user.id);
         const pointsLastWeek = await calculateWeeklyPoints(req.user.id);
 
         const completedToday = summary?.completedTasks || 0;
         const pointsToday = summary?.points || 0;
 
+        // Calculate display streak
+        let displayStreak = summary?.currentStreak || 0;
+        if (completedToday === 0) {
+            // If no tasks done today yet, show yesterday's streak (pending)
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            const previousSummary = await prisma.dailySummary.findUnique({
+                where: {
+                    userId_date: {
+                        userId,
+                        date: yesterday,
+                    },
+                },
+            });
+            displayStreak = previousSummary?.currentStreak || 0;
+        }
+
         return res.json({
             completedToday,
             pendingTasks,
-            streak,
+            streak: displayStreak,
+            maxStreak: summary?.maxStreak || 0,
             pointsToday,
             pointsLastWeek,
             consistency: summary?.consistency || 0,

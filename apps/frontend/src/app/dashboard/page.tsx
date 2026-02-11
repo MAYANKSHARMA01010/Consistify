@@ -93,6 +93,7 @@ export default function DashboardPage() {
                             title="Streak"
                             value={`${stats.streak} Days`}
                             trend="neutral"
+                            description={`Best: ${stats.maxStreak || 0} Days`}
                             icon={<span className="text-orange-500">🔥</span>}
                         />
                         <StatsCard

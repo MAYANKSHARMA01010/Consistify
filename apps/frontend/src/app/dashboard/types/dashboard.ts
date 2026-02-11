@@ -58,6 +58,8 @@ export interface DailySummary {
     focus?: string | null;
     mood?: Mood | null;
     notes?: string | null;
+    currentStreak?: number;
+    maxStreak?: number;
     tasks?: DailyTaskStatusSnapshot[];
 }
 

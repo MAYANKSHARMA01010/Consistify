@@ -8,6 +8,7 @@ export const useDashboardData = (isLoggedIn: boolean) => {
     const [stats, setStats] = useState<DashboardStats>({
         completedToday: 0,
         streak: 0,
+        maxStreak: 0,
         pendingTasks: 0,
         pointsToday: 0,
         pointsLastWeek: 0,
@@ -44,7 +45,35 @@ export const useDashboardData = (isLoggedIn: boolean) => {
             setStats(statsData);
             setTasks(tasksData);
             setDailyStatus(statusData);
-            setHistory([...historyData].reverse());
+
+            // Fill in missing dates for the last 7 days
+            const filledHistory: DailySummary[] = [];
+            for (let i = 0; i < 7; i++) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const dateStr = d.toISOString().split('T')[0];
+
+                const existing = historyData.find((h: DailySummary) => h.date.startsWith(dateStr));
+                if (existing) {
+                    filledHistory.push(existing);
+                } else {
+                    filledHistory.push({
+                        id: `empty-${dateStr}`,
+                        date: dateStr,
+                        completedTasks: 0,
+                        totalTasks: 0,
+                        points: 0,
+                        cumulativePoints: 0,
+                        consistency: 0,
+                        focus: null,
+                        mood: null,
+                        notes: null,
+                        currentStreak: 0,
+                        maxStreak: 0,
+                    } as DailySummary);
+                }
+            }
+            setHistory(filledHistory);
         } catch (error) {
             console.error("Failed to fetch dashboard data:", error);
             toast.error("Failed to load dashboard data");

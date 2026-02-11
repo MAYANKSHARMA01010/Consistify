@@ -10,7 +10,6 @@ export const DailyHistory: React.FC<DailyHistoryProps> = ({ history }) => {
     const [loadingDetails, setLoadingDetails] = useState<Record<string, boolean>>({});
     const [localHistory, setLocalHistory] = useState<DailySummary[]>(history);
 
-    // Sync local history when prop changes
     React.useEffect(() => {
         setLocalHistory(history);
     }, [history]);
@@ -51,7 +50,7 @@ export const DailyHistory: React.FC<DailyHistoryProps> = ({ history }) => {
         setExpandedDay(id);
 
         const day = localHistory.find(d => d.id === id);
-        if (day && (!day.tasks || day.tasks.length === 0)) {
+        if (day && !day.id.startsWith("empty-") && (!day.tasks || day.tasks.length === 0)) {
             try {
                 const { summaryApi } = await import('../../../utils/api');
                 setLoadingDetails(prev => ({ ...prev, [id]: true }));
@@ -77,16 +76,17 @@ export const DailyHistory: React.FC<DailyHistoryProps> = ({ history }) => {
                         <tr className="text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
                             <th className="px-6 py-3 font-medium">Date</th>
                             <th className="px-6 py-3 font-medium">Focus</th>
+                            <th className="px-6 py-3 font-medium text-center">Mood</th>
                             <th className="px-6 py-3 font-medium text-center">Tasks</th>
-                            <th className="px-6 py-3 font-medium text-center">Score</th>
-                            <th className="px-6 py-3 font-medium text-center">Lifetime</th>
-                            <th className="px-6 py-3 font-medium text-center">Energy</th>
+                            <th className="px-6 py-3 font-medium text-center">Max Streak</th>
+                            <th className="px-6 py-3 font-medium text-center">Total XP</th>
+                            <th className="px-6 py-3 font-medium text-center">Current Streak</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
                         {localHistory.length === 0 ? (
                             <tr>
-                                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                                <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
                                     No history available yet. Keep grinding! 🚀
                                 </td>
                             </tr>
@@ -106,6 +106,9 @@ export const DailyHistory: React.FC<DailyHistoryProps> = ({ history }) => {
                                         <td className="px-6 py-4 text-gray-500 dark:text-gray-400 max-w-[200px] truncate">
                                             {day.focus || <span className="text-gray-300 italic">No focus set</span>}
                                         </td>
+                                        <td className="px-6 py-4 text-center text-lg">
+                                            {getMoodEmoji(day.mood)}
+                                        </td>
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex flex-col items-center">
                                                 <span className="font-bold text-gray-700 dark:text-gray-200">
@@ -119,23 +122,21 @@ export const DailyHistory: React.FC<DailyHistoryProps> = ({ history }) => {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-center whitespace-nowrap">
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100/50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
-                                                ⭐ {day.points}
-                                            </span>
+                                        <td className="px-6 py-4 text-center whitespace-nowrap font-medium text-gray-600 dark:text-gray-400">
+                                            {day.maxStreak || 0}
                                         </td>
                                         <td className="px-6 py-4 text-center whitespace-nowrap">
                                             <span className="font-bold text-indigo-600 dark:text-indigo-400">
                                                 {day.cumulativePoints}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-center text-lg">
-                                            {getMoodEmoji(day.mood)}
+                                        <td className="px-6 py-4 text-center whitespace-nowrap font-bold text-orange-500">
+                                            🔥 {day.currentStreak || 0}
                                         </td>
                                     </tr>
                                     {expandedDay === day.id && (
                                         <tr className="bg-gray-50/50 dark:bg-gray-900/20">
-                                            <td colSpan={6} className="px-10 py-6">
+                                            <td colSpan={7} className="px-10 py-6">
                                                 <div className="space-y-6">
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-b border-gray-100 dark:border-gray-700 pb-6">
                                                         <div>

@@ -21,7 +21,7 @@ const motivationalQuotes = [
 ];
 
 export default function DashboardPage() {
-    const { user, loading, isLoggedIn, logout } = useAuth();
+    const { user, loading, isLoggedIn } = useAuth();
     const router = useRouter();
 
     const {
@@ -30,10 +30,15 @@ export default function DashboardPage() {
         dailyStatus,
         isLoading: dataLoading,
         addTask,
+        updateTask,
+        deleteTask,
         updateDailyStatus,
         history,
-        refetch
+        refetch,
+        selectedDate,
+        selectedDaySummary
     } = useDashboardData(!!isLoggedIn);
+
 
     const quote = motivationalQuotes[new Date().getDate() % motivationalQuotes.length];
 
@@ -59,18 +64,6 @@ export default function DashboardPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-                <div className="max-w-6xl mx-auto flex justify-between items-center">
-                    <h2 className="text-xl font-bold text-indigo-600 dark:text-indigo-400">Consistify</h2>
-                    <button
-                        onClick={logout}
-                        className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-                    >
-                        Logout
-                    </button>
-                </div>
-            </nav>
-
             <main className="p-6">
                 <div className="max-w-6xl mx-auto space-y-8">
 
@@ -110,13 +103,14 @@ export default function DashboardPage() {
                         />
                     </section>
 
-                    <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-1">
-                            {stats.focus || stats.mood ? (
+                    <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+                        <div className="lg:col-span-1 flex flex-col">
+                            {selectedDaySummary || stats.focus || stats.mood ? (
                                 <DailyStatus
-                                    date={new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-                                    focus={stats.focus || ""}
-                                    mood={stats.mood || "NORMAL"}
+                                    date={selectedDaySummary?.date || selectedDate}
+                                    focus={selectedDaySummary?.focus || stats.focus || ""}
+                                    mood={selectedDaySummary?.mood || stats.mood || "NORMAL"}
+                                    note={selectedDaySummary?.notes || stats.notes || ""}
                                     onUpdate={updateDailyStatus}
                                 />
                             ) : (
@@ -134,8 +128,14 @@ export default function DashboardPage() {
                             )}
                         </div>
 
-                        <div className="lg:col-span-2">
-                            <TaskList tasks={tasks} onAddTask={addTask} onRefresh={refetch} />
+                        <div className="lg:col-span-2 flex flex-col">
+                            <TaskList
+                                tasks={tasks}
+                                onAddTask={addTask}
+                                onUpdateTask={updateTask}
+                                onDeleteTask={deleteTask}
+                                onRefresh={refetch}
+                            />
                         </div>
                     </section>
 

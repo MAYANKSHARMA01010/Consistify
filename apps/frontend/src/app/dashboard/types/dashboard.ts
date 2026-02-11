@@ -10,6 +10,8 @@ export interface DashboardStats {
     consistency: number;
     focus: string | null;
     mood: Mood | null;
+    notes?: string | null;
+    totalTasks?: number;
 }
 
 export interface Task {

@@ -6,15 +6,22 @@ import toast from 'react-hot-toast';
 interface TaskListProps {
     tasks: Task[];
     onAddTask: (title: string, priority?: Priority) => Promise<void>;
+    onUpdateTask?: (id: string, data: Partial<Task>) => Promise<void>;
+    onDeleteTask?: (id: string) => Promise<void>;
     onRefresh?: () => void;
 }
 
-export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onRefresh }) => {
+export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onUpdateTask, onDeleteTask, onRefresh }) => {
     const [isAdding, setIsAdding] = useState(false);
     const [newTaskTitle, setNewTaskTitle] = useState("");
     const [newTaskPriority, setNewTaskPriority] = useState<Priority>("MEDIUM");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [togglingTaskId, setTogglingTaskId] = useState<string | null>(null);
+
+    // Edit State
+    const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+    const [editTitle, setEditTitle] = useState("");
+    const [editPriority, setEditPriority] = useState<Priority>("MEDIUM");
 
     const sortedTasks = useMemo(() => {
         const activeTasks = tasks.filter(t => t.isActive);
@@ -44,6 +51,8 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onRefresh 
     };
 
     const handleToggleComplete = async (taskId: string, currentStatus: boolean) => {
+        if (editingTaskId === taskId) return;
+
         try {
             setTogglingTaskId(taskId);
             const today = new Date().toISOString().split('T')[0];
@@ -59,6 +68,33 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onRefresh 
             toast.error("Failed to update task");
         } finally {
             setTogglingTaskId(null);
+        }
+    };
+
+    const startEditing = (task: Task, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setEditingTaskId(task.id);
+        setEditTitle(task.taskTitle || task.title);
+        setEditPriority(task.taskPriority || task.priority);
+    };
+
+    const cancelEditing = () => {
+        setEditingTaskId(null);
+        setEditTitle("");
+        setEditPriority("MEDIUM");
+    };
+
+    const saveEdit = async (taskId: string) => {
+        if (!editTitle.trim()) return;
+
+        try {
+            await onUpdateTask?.(taskId, {
+                title: editTitle,
+                priority: editPriority
+            });
+            setEditingTaskId(null);
+        } catch (error) {
+            console.error(error);
         }
     };
 
@@ -105,39 +141,99 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onRefresh 
                         {sortedTasks.map((task) => (
                             <li
                                 key={task.id}
-                                onClick={() => handleToggleComplete(task.id, task.completed)}
-                                className={`group flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer ${task.completed ? "opacity-60" : ""
-                                    } ${togglingTaskId === task.id ? "pointer-events-none opacity-50" : ""}`}
+                                className={`group flex items-center gap-3 p-3 rounded-lg transition-colors ${editingTaskId === task.id ? "bg-indigo-50 dark:bg-indigo-900/20 ring-1 ring-indigo-500" : "hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
+                                    } ${task.completed && editingTaskId !== task.id ? "opacity-60" : ""} ${togglingTaskId === task.id ? "pointer-events-none opacity-50" : ""}`}
+                                onClick={() => !editingTaskId && handleToggleComplete(task.id, task.completed)}
                             >
-                                <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${task.completed
-                                    ? "bg-green-500 border-green-500 text-white"
-                                    : "border-gray-300 dark:border-gray-500 group-hover:border-indigo-500"
-                                    }`}>
-                                    {task.completed && (
-                                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    )}
-                                </div>
+                                {editingTaskId === task.id ? (
+                                    <div className="flex-1 flex gap-2 items-center" onClick={(e) => e.stopPropagation()}>
+                                        <input
+                                            type="text"
+                                            value={editTitle}
+                                            onChange={(e) => setEditTitle(e.target.value)}
+                                            className="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                                            autoFocus
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') saveEdit(task.id);
+                                                if (e.key === 'Escape') cancelEditing();
+                                            }}
+                                        />
+                                        <select
+                                            value={editPriority}
+                                            onChange={(e) => setEditPriority(e.target.value as Priority)}
+                                            className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                                        >
+                                            <option value="LOW">Low</option>
+                                            <option value="MEDIUM">Medium</option>
+                                            <option value="HIGH">High</option>
+                                        </select>
+                                        <button onClick={() => saveEdit(task.id)} className="text-green-600 hover:text-green-700 p-1">
+                                            ✓
+                                        </button>
+                                        <button onClick={cancelEditing} className="text-red-500 hover:text-red-600 p-1">
+                                            ✕
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${task.completed
+                                            ? "bg-green-500 border-green-500 text-white"
+                                            : "border-gray-300 dark:border-gray-500 group-hover:border-indigo-500"
+                                            }`}>
+                                            {task.completed && (
+                                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            )}
+                                        </div>
 
-                                <div className="flex-1 min-w-0">
-                                    <p className={`text-sm font-medium truncate ${task.completed
-                                        ? "text-gray-500 line-through decoration-gray-400"
-                                        : "text-gray-900 dark:text-white"
-                                        }`}>
-                                        {task.taskTitle || task.title}
-                                    </p>
-                                    {task.endDate && !task.completed && (
-                                        <p className="text-xs text-gray-400 mt-0.5">
-                                            Due {new Date(task.endDate).toLocaleDateString()}
-                                        </p>
-                                    )}
-                                </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className={`text-sm font-medium truncate ${task.completed
+                                                ? "text-gray-500 line-through decoration-gray-400"
+                                                : "text-gray-900 dark:text-white"
+                                                }`}>
+                                                {task.taskTitle || task.title}
+                                            </p>
+                                            {task.endDate && !task.completed && (
+                                                <p className="text-xs text-gray-400 mt-0.5">
+                                                    Due {new Date(task.endDate).toLocaleDateString()}
+                                                </p>
+                                            )}
+                                        </div>
 
-                                {!task.completed && (
-                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${getPriorityColor(task.taskPriority || task.priority)}`}>
-                                        {task.taskPriority || task.priority}
-                                    </span>
+                                        <div className="flex items-center gap-2">
+                                            {!task.completed && (
+                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${getPriorityColor(task.taskPriority || task.priority)}`}>
+                                                    {task.taskPriority || task.priority}
+                                                </span>
+                                            )}
+
+                                            <div className={`flex items-center gap-2 ${task.completed ? "invisible" : ""}`}>
+                                                <button
+                                                    onClick={(e) => startEditing(task, e)}
+                                                    className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all"
+                                                    title="Edit Task"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                </button>
+
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onDeleteTask?.(task.id);
+                                                    }}
+                                                    className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-all"
+                                                    title="Delete Task"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </>
                                 )}
                             </li>
                         ))}

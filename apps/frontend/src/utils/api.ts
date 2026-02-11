@@ -94,8 +94,8 @@ export const dailyStatusApi = {
 
 export const summaryApi = {
     getTodaySummary: () => apiFetch<DashboardStats>("/api/summary/today"),
-    updateTodaySummary: (data: { focus?: string; mood?: Mood }) =>
-        apiFetch<DailySummary>("/api/summary/today", { method: "PATCH", body: data }),
+    updateSummary: (data: { focus?: string; mood?: Mood; notes?: string; date?: string }) =>
+        apiFetch<DailySummary>("/api/summary", { method: "PATCH", body: data }),
     getSummaryByRange: (startDate: string, endDate: string) =>
         apiFetch<DailySummary[]>(`/api/summary/range?startDate=${startDate}&endDate=${endDate}`),
     getSummaryDetails: (id: string) =>

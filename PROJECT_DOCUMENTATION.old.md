@@ -1,5 +1,32 @@
 # Consistify - Year Tracker Project Documentation
 
+> **⚠️ DEPRECATED**: This file has been reorganized into modular documentation.  
+> **📚 Please use the new documentation structure below:**
+
+---
+
+## 🔗 Quick Navigation to New Documentation
+
+| Document | Description | Link |
+|----------|-------------|------|
+| 📖 **Main README** | Project overview, quick start, tech stack | [README.md](./README.md) |
+| 🏗️ **Architecture** | Tech stack, folder structure, design patterns | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) |
+| 🚀 **Setup Guide** | Installation, configuration, troubleshooting | [docs/SETUP.md](./docs/SETUP.md) |
+| 🔌 **API Reference** | Complete API endpoint documentation | [docs/API.md](./docs/API.md) |
+| 🗄️ **Database Schema** | Data models, relationships, migrations | [docs/DATABASE.md](./docs/DATABASE.md) |
+| ✅ **Features** | Completed features and workflows | [docs/FEATURES.md](./docs/FEATURES.md) |
+| 🗺️ **Roadmap** | Future features and timeline | [docs/ROADMAP.md](./docs/ROADMAP.md) |
+| 🛠️ **Development Guide** | How to implement new features (with code) | [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md) |
+| 🐛 **Known Issues** | Resolved issues and debugging tips | [docs/ISSUES.md](./docs/ISSUES.md) |
+
+---
+
+**💡 Tip:** Use the table above to quickly jump to the information you need instead of scrolling through this file!
+
+---
+
+## Legacy Content Below
+
 **Project Name:** Consistify  
 **Type:** Daily Task Tracker & Productivity Management System  
 **Tech Stack:** Next.js (Frontend) + Express.js (Backend) + PostgreSQL (Database)  

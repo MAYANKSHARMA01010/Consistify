@@ -1,4 +1,4 @@
-**📚 Documentation:** [🏠 README](./README.md) • [🏗️ Architecture](./docs/ARCHITECTURE.md) • [🚀 Setup](./docs/SETUP.md) • [🔌 API](./docs/API.md) • [🗄️ Database](./docs/DATABASE.md) • [✅ Features](./docs/FEATURES.md) • [🗺️ Roadmap](./docs/ROADMAP.md) • [🛠️ Development](./docs/DEVELOPMENT.md) • [🐛 Issues](./docs/ISSUES.md)
+📚 **Documentation:** [Architecture](./docs/ARCHITECTURE.md) • [Setup](./docs/SETUP.md) • [API](./docs/API.md) • [Database](./docs/DATABASE.md) • [Features](./docs/FEATURES.md) • [Roadmap](./docs/ROADMAP.md) • [Development](./docs/DEVELOPMENT.md) • [Issues](./docs/ISSUES.md)
 
 ---
 
@@ -8,16 +8,12 @@
 
 **Daily Task Tracker & Productivity Management System**
 
-Build consistency through daily task tracking, streaks, and gamification.
-
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 [![Express](https://img.shields.io/badge/Express-5-000000?style=flat&logo=express)](https://expressjs.com/)
 [![Prisma](https://img.shields.io/badge/Prisma-6-2D3748?style=flat&logo=prisma)](https://www.prisma.io/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-336791?style=flat&logo=postgresql)](https://www.postgresql.org/)
-
-[Quick Start](#-quick-start) • [Features](#-key-features) • [Documentation](#-documentation) • [Roadmap](#-roadmap)
 
 </div>
 

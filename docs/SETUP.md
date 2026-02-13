@@ -16,7 +16,7 @@
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/MAYANKSHARMA01010/Consistify
 cd Consistify
 ```
 
@@ -68,7 +68,7 @@ GOOGLE_CALLBACK_URL=http://localhost:5001/api/auth/google/callback
 
 #### Frontend (.env)
 
-Create `/apps/frontend/.env.local`:
+Create `/apps/frontend/.env`:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:5001
@@ -130,7 +130,7 @@ If you encounter database connection errors:
 If ports 3000 or 5001 are already in use:
 
 1. Change `SERVER_PORT` in backend `.env`
-2. Update `NEXT_PUBLIC_API_URL` in frontend `.env.local`
+2. Update `NEXT_PUBLIC_API_URL` in frontend `.env`
 3. Update `FRONTEND_LOCAL_URL` in backend `.env`
 
 ### Prisma Issues

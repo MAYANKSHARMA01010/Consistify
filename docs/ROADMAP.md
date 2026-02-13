@@ -43,7 +43,7 @@
 
 **Option A: Recharts** (Top Pick for General Charts)
 ```bash
-npm install recharts
+pnpm install recharts
 ```
 - **Best for:** Dashboard statistics, trend analysis
 - **Pros:** Simple API, highly customizable, responsive, TypeScript support
@@ -51,7 +51,7 @@ npm install recharts
 
 **Option B: Tremor** (Top Pick for Analytics Dashboards)
 ```bash
-npm install @tremor/react
+pnpm install @tremor/react
 ```
 - **Best for:** Modern analytics dashboards
 - **Pros:** Beautiful pre-built components, Tailwind CSS integration
@@ -59,7 +59,7 @@ npm install @tremor/react
 
 **Option C: Chart.js with react-chartjs-2**
 ```bash
-npm install chart.js react-chartjs-2
+pnpm install chart.js react-chartjs-2
 ```
 - **Best for:** Traditional charts (bar, line, pie, doughnut)
 - **Pros:** Most popular, extensive documentation, plugin ecosystem

@@ -200,18 +200,208 @@
 - [ ] System analytics dashboard (total users, tasks, active users)
 - [ ] Audit logs viewer
 
-#### 2. **Enhanced Data Visualization** 🟡
+#### 2. **Enhanced Data Visualization & Analytics** 🟡
 
-**Status:** Partially Complete  
-**Description:** Improve analytics and charts for better insights
-**Tasks:**
+**Status:** Planning Phase  
+**Description:** Implement interactive dashboards with React charts and optional Python analytics for advanced insights
 
-- [ ] Add chart library (Chart.js or Recharts)
-- [ ] Weekly/Monthly completion trend graph
-- [ ] Points progression chart
-- [ ] Streak history visualization
-- [ ] Pie chart for task distribution by priority
-- [ ] Heatmap for yearly task completion
+---
+
+##### **Phase 1: Frontend Data Visualization (React/Next.js)** 🎯 **Recommended**
+
+**Recommended Library:** **Recharts** or **Tremor**
+
+**Why React Libraries:**
+- ✅ Seamless integration with existing React/TypeScript stack
+- ✅ Interactive, real-time charts perfect for dashboards
+- ✅ No additional backend infrastructure needed
+- ✅ Works with current Node.js/Express API
+- ✅ Vercel deployment compatible
+
+**Library Options:**
+
+**Option A: Recharts** (Top Pick for General Charts)
+```bash
+npm install recharts
+```
+- **Best for:** Dashboard statistics, trend analysis
+- **Pros:** Simple API, highly customizable, responsive, TypeScript support
+- **Use cases:** Task completion trends, points progression, streak history
+
+**Option B: Tremor** (Top Pick for Analytics Dashboards)
+```bash
+npm install @tremor/react
+```
+- **Best for:** Modern analytics dashboards
+- **Pros:** Beautiful pre-built components, Tailwind CSS integration
+- **Use cases:** Admin analytics, KPI cards with integrated charts
+
+**Option C: Chart.js with react-chartjs-2**
+```bash
+npm install chart.js react-chartjs-2
+```
+- **Best for:** Traditional charts (bar, line, pie, doughnut)
+- **Pros:** Most popular, extensive documentation, plugin ecosystem
+- **Use cases:** General-purpose charts across the application
+
+**Implementation Tasks:**
+
+- [ ] **Install chart library** (Recharts recommended)
+- [ ] **User Dashboard Charts:**
+  - [ ] Weekly completion trend graph (line chart)
+  - [ ] Monthly completion trend graph (area chart)
+  - [ ] Points progression chart (line chart with gradient)
+  - [ ] Streak history visualization (bar chart)
+  - [ ] Task distribution by priority (pie/donut chart)
+  - [ ] Task completion rate by day of week (bar chart)
+- [ ] **Admin Dashboard Charts:**
+  - [ ] Platform-wide user activity (heatmap)
+  - [ ] User engagement trends (multi-line chart)
+  - [ ] Task completion statistics (stacked bar chart)
+- [ ] **Interactive Features:**
+  - [ ] Hover tooltips with detailed stats
+  - [ ] Date range selectors
+  - [ ] Export chart as image
+  - [ ] Filter by task category/priority
+- [ ] **Yearly Heatmap:**
+  - [ ] GitHub-style contribution calendar
+  - [ ] Color intensity based on completion percentage
+  - [ ] Click on date to view details
+
+---
+
+##### **Phase 2: Python Analytics Microservice (Advanced)** 🚀 **Optional Enhancement**
+
+**When to Add Python:**
+- ⚠️ You want **advanced statistical analysis** and **ML predictions**
+- ⚠️ You need **automated PDF report generation** (weekly/monthly emails)
+- ⚠️ You require **heavy data processing** before visualization
+- ⚠️ You plan to offer **premium analytics features**
+
+**What Python Can Do:**
+
+**1. Advanced Statistical Analysis**
+- Streak prediction (predict when users will break streaks)
+- Anomaly detection (sudden productivity drops)
+- Time series forecasting (future completion rates)
+- User segmentation (cluster users by behavior patterns)
+- Correlation analysis (task difficulty vs completion)
+
+**2. Predictive Machine Learning**
+- Predict task completion probability
+- Recommend optimal task load per user
+- Identify best time-of-day for task completion
+- Suggest task priority adjustments
+
+**3. Complex Data Aggregations**
+- Multi-dimensional reports (by hour/day/week/month/category)
+- Cross-user analytics (team performance comparisons)
+- Cohort analysis (user groups over time)
+- Consistency score algorithms with exponential weighting
+
+**4. Automated Report Generation**
+- Weekly PDF reports emailed to users
+- Monthly performance summaries with charts
+- Custom admin reports (CSV, Excel, PDF)
+
+**Architecture: Microservice Approach**
+
+```
+┌─────────────────────────────────────────┐
+│   Next.js Frontend (React + Charts)    │
+└────────────┬────────────────────────────┘
+             │
+     ┌───────┴────────┐
+     │                │
+┌────▼─────┐  ┌──────▼──────────┐
+│ Node.js  │  │  Python Flask   │
+│ Express  │  │  Analytics API  │
+│ (CRUD)   │  │  (ML/Reports)   │
+└────┬─────┘  └──────┬──────────┘
+     │                │
+     └───────┬────────┘
+             │
+      ┌──────▼──────┐
+      │  PostgreSQL │
+      │  (Prisma)   │
+      └─────────────┘
+```
+
+**Python Service Endpoints:**
+- `/api/analytics/trends` - Generate trend analysis
+- `/api/analytics/predict` - ML-based predictions
+- `/api/analytics/insights/:userId` - Deep user insights
+- `/api/reports/generate/pdf` - PDF report generation
+- `/api/reports/email/weekly` - Automated email reports
+
+**Python Tech Stack:**
+
+```python
+# Core Analytics
+pandas          # Data manipulation
+numpy           # Numerical computations
+scipy           # Statistical analysis
+
+# Visualization (for PDFs)
+matplotlib      # Static charts for reports
+seaborn         # Statistical visualizations
+plotly          # Interactive charts (can export to images)
+
+# Machine Learning
+scikit-learn    # Prediction models
+statsmodels     # Time series analysis
+
+# Report Generation
+reportlab       # PDF generation
+weasyprint      # HTML to PDF conversion
+
+# API Framework
+flask           # Lightweight API
+# OR
+fastapi         # Modern, async API (recommended)
+
+# Database
+psycopg2        # PostgreSQL adapter
+sqlalchemy      # ORM (alternative to Prisma)
+```
+
+**Implementation Tasks (If Python Chosen):**
+
+- [ ] **Setup Python Service:**
+  - [ ] Create `/apps/analytics` directory
+  - [ ] Setup virtual environment
+  - [ ] Install dependencies (requirements.txt)
+  - [ ] Configure environment variables
+  - [ ] Setup Flask/FastAPI server
+- [ ] **Core Analytics Endpoints:**
+  - [ ] Consistency score calculation algorithm
+  - [ ] Streak prediction model
+  - [ ] User behavior clustering
+  - [ ] Trend forecasting
+- [ ] **PDF Report Generator:**
+  - [ ] Weekly summary template
+  - [ ] Monthly performance report
+  - [ ] Include charts (matplotlib/plotly)
+  - [ ] Email integration (SendGrid/SMTP)
+- [ ] **Scheduled Jobs:**
+  - [ ] Cron job for weekly report generation
+  - [ ] Pre-compute analytics (store in DB)
+  - [ ] Data cleanup and aggregation
+- [ ] **Integration with Node.js:**
+  - [ ] API gateway routing
+  - [ ] Shared authentication (JWT)
+  - [ ] Error handling and logging
+  - [ ] Rate limiting
+
+**Deployment Considerations:**
+- Host Python service on separate container (Docker)
+- Use Render/Railway/Heroku for Python API
+- Schedule jobs with Celery + Redis
+- Share PostgreSQL database between services
+
+---
+
+**Recommendation:** Start with **Phase 1 (React Charts)** for immediate value. Add **Phase 2 (Python)** later if you need ML predictions, automated reports, or advanced analytics as premium features.
 
 #### 3. **Task Categories/Tags** 🟡
 

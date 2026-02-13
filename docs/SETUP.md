@@ -96,7 +96,7 @@ pnpm prisma db seed
 
 ```bash
 cd apps/backend
-pnpm dev
+pnpm run dev
 # Server runs on http://localhost:5001
 ```
 
@@ -104,7 +104,7 @@ pnpm dev
 
 ```bash
 cd apps/frontend
-pnpm dev
+pnpm run dev
 # App runs on http://localhost:3000
 ```
 
@@ -139,8 +139,8 @@ If you encounter Prisma errors after schema changes:
 
 ```bash
 cd apps/backend
-npx prisma generate
-npx prisma migrate dev
+pnpm prisma generate
+pnpm prisma migrate dev
 ```
 
 ### Google OAuth Not Working

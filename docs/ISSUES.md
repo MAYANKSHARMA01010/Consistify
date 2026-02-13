@@ -67,13 +67,13 @@ const dailyStatus = await prisma.dailyTaskStatus.upsert({
 
 **Issue:** Enum values not recognized after schema update  
 **Cause:** Prisma client not regenerated  
-**Solution:** Run `npx prisma generate` after schema changes
+**Solution:** Run `pnpx prisma generate` after schema changes
 
 **Checklist:**
 ```bash
 cd apps/backend
-npx prisma migrate dev --name description
-npx prisma generate
+pnpx prisma migrate dev --name description
+pnpx prisma generate
 # Restart server
 ```
 
@@ -103,7 +103,7 @@ pnpm update axios@1.13.5
 1. **Check Prisma Studio:**
    ```bash
    cd apps/backend
-   npx prisma studio
+   pnpx prisma studio
    ```
    - Inspect data directly
    - Verify relationships
@@ -116,9 +116,9 @@ pnpm update axios@1.13.5
 3. **Reset Database (Development Only):**
    ```bash
    cd apps/backend
-   npx prisma migrate reset
-   npx prisma migrate dev
-   npx prisma generate
+   pnpx prisma migrate reset
+   pnpx prisma migrate dev
+   pnpx prisma generate
    ```
 
 ### Authentication Issues
@@ -168,7 +168,7 @@ pnpm update axios@1.13.5
 
 After any schema change:
 ```bash
-npx prisma generate
+pnpx prisma generate
 ```
 
 ### 2. **Environment Variables Not Loading**

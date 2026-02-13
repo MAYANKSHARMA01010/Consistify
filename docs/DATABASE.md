@@ -248,10 +248,10 @@ After modifying `schema.prisma`:
 cd apps/backend
 
 # Create and apply migration
-npx prisma migrate dev --name description_of_change
+pnpx prisma migrate dev --name description_of_change
 
 # Regenerate Prisma Client
-npx prisma generate
+pnpx prisma generate
 ```
 
 ### Inspecting Database
@@ -260,7 +260,7 @@ Use Prisma Studio to visualize data:
 
 ```bash
 cd apps/backend
-npx prisma studio
+pnpx prisma studio
 ```
 
 This opens a web interface at `http://localhost:5555` where you can browse and edit data.

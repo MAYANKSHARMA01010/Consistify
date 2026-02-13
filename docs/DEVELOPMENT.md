@@ -257,8 +257,8 @@ model User {
 
 ```bash
 cd apps/backend
-npx prisma migrate dev --name add_categories
-npx prisma generate
+pnpx prisma migrate dev --name add_categories
+pnpx prisma generate
 ```
 
 #### Step 3: Create Category Controller
@@ -365,8 +365,8 @@ Whenever you change `schema.prisma`:
 
 ```bash
 cd apps/backend
-npx prisma migrate dev --name description_of_change
-npx prisma generate
+pnpx prisma migrate dev --name description_of_change
+pnpx prisma generate
 ```
 
 ### Debugging Tips
@@ -374,7 +374,7 @@ npx prisma generate
 - Check Prisma Studio to inspect database:
   ```bash
   cd apps/backend
-  npx prisma studio
+  pnpx prisma studio
   ```
 - View server logs for backend errors
 - Use React DevTools for frontend state debugging

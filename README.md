@@ -91,8 +91,8 @@ pnpm install
 
 # Run database migrations
 cd apps/backend
-npx prisma migrate dev
-npx prisma generate
+pnpx prisma migrate dev
+pnpx prisma generate
 
 # Start backend server
 pnpm dev
@@ -180,13 +180,13 @@ pnpm dev
 ```bash
 # View database in Prisma Studio
 cd apps/backend
-npx prisma studio
+pnpx prisma studio
 
 # Create migration after schema changes
-npx prisma migrate dev --name description
+pnpx prisma migrate dev --name description
 
 # Regenerate Prisma Client
-npx prisma generate
+pnpx prisma generate
 ```
 
 ### Code Structure

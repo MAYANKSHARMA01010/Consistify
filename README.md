@@ -1,5 +1,3 @@
----
-
 **📚 Documentation:** [🏠 README](./README.md) • [🏗️ Architecture](./docs/ARCHITECTURE.md) • [🚀 Setup](./docs/SETUP.md) • [🔌 API](./docs/API.md) • [🗄️ Database](./docs/DATABASE.md) • [✅ Features](./docs/FEATURES.md) • [🗺️ Roadmap](./docs/ROADMAP.md) • [🛠️ Development](./docs/DEVELOPMENT.md) • [🐛 Issues](./docs/ISSUES.md)
 
 ---

@@ -95,10 +95,9 @@ export default function DashboardPage() {
                         icon={<span className="text-yellow-400 text-xl">⏳</span>}
                     />
                     <StatsCard
-                        title="Streak"
+                        title="Current Streak"
                         value={`${stats.streak}`}
-                        trend="neutral"
-                        description={`Best: ${stats.maxStreak || 0} Days`}
+                        description={`Overall Best: ${stats.maxStreak || 0} Days`}
                         icon={<span className="text-orange-400 text-xl">🔥</span>}
                     />
                     <StatsCard

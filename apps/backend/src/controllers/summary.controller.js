@@ -82,7 +82,20 @@ const calculateAndSaveSummary = async (userId, date) => {
             currentStreak = 0;
         }
 
-        const maxStreak = Math.max(currentStreak, previousSummary?.maxStreak || 0);
+        // Calculate max streak by checking all-time best
+        const bestPastSummary = await prisma.dailySummary.findFirst({
+            where: {
+                userId,
+                // Exclude today to avoid self-reference issues if re-calculating
+                date: { lt: summaryDate }
+            },
+            orderBy: {
+                currentStreak: 'desc'
+            }
+        });
+
+        const bestPastStreak = bestPastSummary?.currentStreak || 0;
+        const maxStreak = Math.max(currentStreak, bestPastStreak, previousSummary?.maxStreak || 0);
 
         const summary = await prisma.dailySummary.upsert({
             where: {

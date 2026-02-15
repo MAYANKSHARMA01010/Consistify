@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from "date-fns";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { summaryApi } from "../../utils/api";
-import { DailySummary } from "../dashboard/types/dashboard";
+import { DailySummary, DailyTaskStatusSnapshot } from "../dashboard/types/dashboard";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/utils/cn";
 
@@ -20,7 +20,9 @@ function HistoryContent() {
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [monthData, setMonthData] = useState<DailySummary[]>([]);
     const [selectedDayDetails, setSelectedDayDetails] = useState<DailySummary | null>(null);
+    const [dailyTasks, setDailyTasks] = useState<DailyTaskStatusSnapshot[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingTasks, setIsLoadingTasks] = useState(false);
 
     // Initialize from URL param if present
     useEffect(() => {
@@ -61,12 +63,32 @@ function HistoryContent() {
 
     // Update details when selected date changes
     useEffect(() => {
+        const fetchTasks = async (summaryId: string) => {
+            setIsLoadingTasks(true);
+            try {
+                const tasks = await summaryApi.getSummaryDetails(summaryId);
+                setDailyTasks(tasks);
+            } catch (error) {
+                console.error("Failed to fetch task details:", error);
+                setDailyTasks([]);
+            } finally {
+                setIsLoadingTasks(false);
+            }
+        };
+
         if (selectedDate && monthData.length > 0) {
             const dayStr = format(selectedDate, 'yyyy-MM-dd');
             const data = monthData.find(d => d.date.startsWith(dayStr));
             setSelectedDayDetails(data || null);
+
+            if (data?.id) {
+                fetchTasks(data.id);
+            } else {
+                setDailyTasks([]);
+            }
         } else {
             setSelectedDayDetails(null);
+            setDailyTasks([]);
         }
     }, [selectedDate, monthData]);
 
@@ -93,8 +115,8 @@ function HistoryContent() {
     if (loading) return null;
 
     return (
-        <div className="min-h-screen py-24 px-6 max-w-7xl mx-auto">
-            <header className="mb-8">
+        <div className="min-h-screen py-24 px-6 max-w-7xl mx-auto space-y-8">
+            <header>
                 <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-2">
                     Your Journey
                 </h1>
@@ -263,6 +285,73 @@ function HistoryContent() {
                     </AnimatePresence>
                 </div>
             </div>
+
+            {/* Task Details Section */}
+            {selectedDate && selectedDayDetails && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                >
+                    <GlassCard className="p-6">
+                        <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                            <span className="text-cyan-400">Tasks</span> on {format(selectedDate, 'MMMM do')}
+                        </h3>
+
+                        {isLoadingTasks ? (
+                            <div className="py-12 flex justify-center">
+                                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500"></div>
+                            </div>
+                        ) : dailyTasks.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Completed Tasks */}
+                                <div className="space-y-4">
+                                    <h4 className="text-sm font-bold text-green-400 uppercase tracking-widest border-b border-green-500/20 pb-2 mb-4">
+                                        Completed ({dailyTasks.filter(t => t.isCompleted).length})
+                                    </h4>
+                                    <div className="space-y-2">
+                                        {dailyTasks.filter(t => t.isCompleted).map(task => (
+                                            <div key={task.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                                                <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center border border-green-500/50">
+                                                    <span className="text-green-400 text-xs">✓</span>
+                                                </div>
+                                                <span className="text-zinc-300 font-medium line-through decoration-zinc-500">{task.title}</span>
+                                            </div>
+                                        ))}
+                                        {dailyTasks.filter(t => t.isCompleted).length === 0 && (
+                                            <p className="text-zinc-600 italic text-sm">No tasks completed.</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Incomplete Tasks */}
+                                <div className="space-y-4">
+                                    <h4 className="text-sm font-bold text-red-400 uppercase tracking-widest border-b border-red-500/20 pb-2 mb-4">
+                                        Incomplete ({dailyTasks.filter(t => !t.isCompleted).length})
+                                    </h4>
+                                    <div className="space-y-2">
+                                        {dailyTasks.filter(t => !t.isCompleted).map(task => (
+                                            <div key={task.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                                                <div className="w-5 h-5 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/30">
+                                                    <span className="text-red-400 text-xs">✕</span>
+                                                </div>
+                                                <span className="text-zinc-300 font-medium">{task.title}</span>
+                                            </div>
+                                        ))}
+                                        {dailyTasks.filter(t => !t.isCompleted).length === 0 && (
+                                            <p className="text-zinc-600 italic text-sm">No incomplete tasks.</p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-center py-12 text-zinc-500">
+                                <p>No tasks found for this day.</p>
+                            </div>
+                        )}
+                    </GlassCard>
+                </motion.div>
+            )}
         </div>
     );
 }

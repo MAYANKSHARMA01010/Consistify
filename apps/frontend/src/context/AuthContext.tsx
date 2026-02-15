@@ -11,6 +11,7 @@ type User = {
     email: string;
     username: string;
     role: "USER" | "ADMIN";
+    xp?: number;
 };
 
 type AuthContextType = {

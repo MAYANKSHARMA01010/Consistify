@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 import { StatsCard } from "./components/StatsCard";
 import { DailyStatus } from "./components/DailyStatus";
 import { TaskList } from "./components/TaskList";
-import { DailyHistory } from "./components/DailyHistory";
+import { HistoryRail } from "./components/HistoryRail";
 
 import { useDashboardData } from "./hooks/useDashboardData";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -146,9 +146,7 @@ export default function DashboardPage() {
                 </section>
 
                 <section>
-                    {/* We might need to wrap History in a GlassCard inside the component or here. Let's see the component first. 
-                         For now, passing props as is. */}
-                    <DailyHistory history={history} />
+                    <HistoryRail history={history} />
                 </section>
 
             </main>

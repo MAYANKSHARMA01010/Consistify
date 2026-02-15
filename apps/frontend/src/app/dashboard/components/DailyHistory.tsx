@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { DailySummary, Priority } from '../types/dashboard';
+import { GlassCard } from '@/components/ui/GlassCard';
 
 interface DailyHistoryProps {
     history: DailySummary[];
@@ -34,10 +35,10 @@ export const DailyHistory: React.FC<DailyHistoryProps> = ({ history }) => {
 
     const getPriorityColor = (priority: Priority) => {
         switch (priority) {
-            case "HIGH": return "text-red-500 bg-red-50 dark:bg-red-900/20";
-            case "MEDIUM": return "text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20";
-            case "LOW": return "text-blue-500 bg-blue-50 dark:bg-blue-900/20";
-            default: return "text-gray-500 bg-gray-50 dark:bg-gray-800/50";
+            case "HIGH": return "text-red-400 bg-red-500/10 border-red-500/20";
+            case "MEDIUM": return "text-yellow-400 bg-yellow-500/10 border-yellow-500/20";
+            case "LOW": return "text-blue-400 bg-blue-500/10 border-blue-500/20";
+            default: return "text-zinc-500 bg-zinc-500/10 border-zinc-500/20";
         }
     };
 
@@ -65,28 +66,28 @@ export const DailyHistory: React.FC<DailyHistoryProps> = ({ history }) => {
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-            <div className="p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-between items-center">
-                <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Recent History (Last 7 Days)</h3>
-                <span className="text-xs text-gray-400">Click a row to see audit details</span>
+        <GlassCard className="p-0 overflow-hidden">
+            <div className="p-4 border-b border-white/5 bg-white/5 flex justify-between items-center">
+                <h3 className="font-bold text-white text-sm uppercase tracking-wider">Recent History (Last 7 Days)</h3>
+                <span className="text-[10px] text-zinc-500 font-mono">Tap row for details</span>
             </div>
             <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm border-collapse">
                     <thead>
-                        <tr className="text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
-                            <th className="px-6 py-3 font-medium">Date</th>
-                            <th className="px-6 py-3 font-medium">Focus</th>
-                            <th className="px-6 py-3 font-medium text-center">Mood</th>
-                            <th className="px-6 py-3 font-medium text-center">Tasks</th>
-                            <th className="px-6 py-3 font-medium text-center">Max Streak</th>
-                            <th className="px-6 py-3 font-medium text-center">Total XP</th>
-                            <th className="px-6 py-3 font-medium text-center">Current Streak</th>
+                        <tr className="text-zinc-500 border-b border-white/5 text-[10px] uppercase font-bold tracking-widest">
+                            <th className="px-6 py-4">Date</th>
+                            <th className="px-6 py-4">Focus</th>
+                            <th className="px-6 py-4 text-center">Mood</th>
+                            <th className="px-6 py-4 text-center">Tasks</th>
+                            <th className="px-6 py-4 text-center">Max Streak</th>
+                            <th className="px-6 py-4 text-center">Total XP</th>
+                            <th className="px-6 py-4 text-center">Current Streak</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
+                    <tbody className="divide-y divide-white/5">
                         {localHistory.length === 0 ? (
                             <tr>
-                                <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                                <td colSpan={7} className="px-6 py-8 text-center text-zinc-500">
                                     No history available yet. Keep grinding! 🚀
                                 </td>
                             </tr>
@@ -95,57 +96,57 @@ export const DailyHistory: React.FC<DailyHistoryProps> = ({ history }) => {
                                 <React.Fragment key={day.id}>
                                     <tr
                                         onClick={() => toggleExpand(day.id)}
-                                        className={`hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer ${expandedDay === day.id ? "bg-indigo-50/30 dark:bg-indigo-900/10" : ""}`}
+                                        className={`hover:bg-white/5 transition-colors cursor-pointer ${expandedDay === day.id ? "bg-white/5" : ""}`}
                                     >
-                                        <td className="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">
-                                            <div className="flex items-center gap-2">
-                                                <span className={`text-[10px] transition-transform ${expandedDay === day.id ? "rotate-90" : ""}`}>▶</span>
+                                        <td className="px-6 py-4 font-medium text-white whitespace-nowrap">
+                                            <div className="flex items-center gap-3">
+                                                <span className={`text-[10px] text-cyan-500 transition-transform ${expandedDay === day.id ? "rotate-90" : ""}`}>▶</span>
                                                 {formatDate(day.date)}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-gray-500 dark:text-gray-400 max-w-[200px] truncate">
-                                            {day.focus || <span className="text-gray-300 italic">No focus set</span>}
+                                        <td className="px-6 py-4 text-zinc-400 max-w-[200px] truncate">
+                                            {day.focus || <span className="text-zinc-600 italic">No focus set</span>}
                                         </td>
                                         <td className="px-6 py-4 text-center text-lg">
                                             {getMoodEmoji(day.mood)}
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            <div className="flex flex-col items-center">
-                                                <span className="font-bold text-gray-700 dark:text-gray-200">
+                                            <div className="flex flex-col items-center gap-1">
+                                                <span className="font-bold text-zinc-300 text-xs">
                                                     {day.completedTasks}/{day.totalTasks}
                                                 </span>
-                                                <div className="w-16 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full mt-1 overflow-hidden">
+                                                <div className="w-20 h-1 bg-black/50 rounded-full overflow-hidden">
                                                     <div
-                                                        className="h-full bg-indigo-500 transition-all duration-500"
+                                                        className="h-full bg-cyan-500 transition-all duration-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]"
                                                         style={{ width: `${day.consistency}%` }}
                                                     />
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-center whitespace-nowrap font-medium text-gray-600 dark:text-gray-400">
+                                        <td className="px-6 py-4 text-center whitespace-nowrap font-medium text-zinc-400">
                                             {day.maxStreak || 0}
                                         </td>
                                         <td className="px-6 py-4 text-center whitespace-nowrap">
-                                            <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                                            <span className="font-bold text-cyan-400 drop-shadow-[0_0_5px_rgba(6,182,212,0.8)]">
                                                 {day.cumulativePoints}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-center whitespace-nowrap font-bold text-orange-500">
+                                        <td className="px-6 py-4 text-center whitespace-nowrap font-bold text-orange-400 drop-shadow-[0_0_5px_rgba(251,146,60,0.5)]">
                                             🔥 {day.currentStreak || 0}
                                         </td>
                                     </tr>
                                     {expandedDay === day.id && (
-                                        <tr className="bg-gray-50/50 dark:bg-gray-900/20">
-                                            <td colSpan={7} className="px-10 py-6">
+                                        <tr className="bg-black/20">
+                                            <td colSpan={7} className="px-8 py-6">
                                                 <div className="space-y-6">
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-b border-gray-100 dark:border-gray-700 pb-6">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-b border-white/5 pb-6">
                                                         <div>
-                                                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 mb-2">Daily Focus</h4>
-                                                            <p className="text-sm text-gray-700 dark:text-gray-200 font-medium">{day.focus || "No focus defined"}</p>
+                                                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-cyan-500 mb-2">Daily Focus</h4>
+                                                            <p className="text-sm text-zinc-300 font-medium">{day.focus || "No focus defined"}</p>
                                                         </div>
                                                         <div>
-                                                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 mb-2">Daily Notes</h4>
-                                                            <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                                                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-cyan-500 mb-2">Daily Notes</h4>
+                                                            <p className="text-sm text-zinc-500 italic">
                                                                 {day.notes || "No notes for this day."}
                                                             </p>
                                                         </div>
@@ -153,36 +154,36 @@ export const DailyHistory: React.FC<DailyHistoryProps> = ({ history }) => {
 
                                                     <div className="space-y-4">
                                                         <div className="flex justify-between items-center">
-                                                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Task Audit Log Snapshot</h4>
-                                                            <span className="text-[10px] text-gray-400 italic">Sourced from permanent audit records</span>
+                                                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Task Audit Log Snapshot</h4>
+                                                            <span className="text-[10px] text-zinc-600 italic">Sourced from permanent audit records</span>
                                                         </div>
                                                         {loadingDetails[day.id] ? (
                                                             <div className="flex items-center gap-3 py-4">
-                                                                <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                                                                <span className="text-xs text-gray-400">Loading snapshots...</span>
+                                                                <div className="w-4 h-4 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+                                                                <span className="text-xs text-zinc-500">Loading snapshots...</span>
                                                             </div>
                                                         ) : day.tasks && day.tasks.length > 0 ? (
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-3">
                                                                 {day.tasks.map((task) => (
                                                                     <div key={task.id} className="flex items-center justify-between gap-4 group">
                                                                         <div className="flex items-center gap-3 min-w-0">
-                                                                            <span className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold ${task.isCompleted
-                                                                                ? "text-green-600 bg-green-100 dark:bg-green-900/30"
-                                                                                : "text-gray-400 bg-gray-100 dark:bg-gray-800"}`}>
+                                                                            <span className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 text-[10px] font-bold border transition-colors ${task.isCompleted
+                                                                                ? "text-black bg-cyan-500 border-cyan-500"
+                                                                                : "text-zinc-500 bg-transparent border-zinc-700"}`}>
                                                                                 {task.isCompleted ? "✓" : "!"}
                                                                             </span>
-                                                                            <span className={`text-sm truncate ${task.isCompleted ? "text-gray-400 line-through" : "text-gray-700 dark:text-gray-300"}`}>
+                                                                            <span className={`text-sm truncate ${task.isCompleted ? "text-zinc-500 line-through decoration-zinc-600" : "text-zinc-300"}`}>
                                                                                 {task.title}
                                                                             </span>
                                                                         </div>
-                                                                        <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded shadow-sm ${getPriorityColor(task.priority)}`}>
+                                                                        <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded border ${getPriorityColor(task.priority)}`}>
                                                                             {task.priority}
                                                                         </span>
                                                                     </div>
                                                                 ))}
                                                             </div>
                                                         ) : (
-                                                            <p className="text-xs text-gray-400 italic">No task snapshots recorded for this day.</p>
+                                                            <p className="text-xs text-zinc-600 italic">No task snapshots recorded for this day.</p>
                                                         )}
                                                     </div>
                                                 </div>
@@ -195,6 +196,6 @@ export const DailyHistory: React.FC<DailyHistoryProps> = ({ history }) => {
                     </tbody>
                 </table>
             </div>
-        </div>
+        </GlassCard>
     );
 };

@@ -5,6 +5,7 @@ import { AuthProvider } from "../context/AuthContext";
 
 import { Toaster } from "react-hot-toast";
 import Navbar from "@/components/layouts/Navbar";
+import { Background } from "@/components/ui/Background";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,6 +34,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <AuthProvider>
+          <Background />
           <Navbar />
           <main className="min-h-screen">{children}</main>
           <Toaster

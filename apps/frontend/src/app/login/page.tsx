@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import { loginSchema } from "../../utils/validators";
 import toast from "react-hot-toast";
 import { getErrorMessage } from "../../utils/api";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { NeonButton } from "@/components/ui/NeonButton";
 
 export default function LoginPage() {
     const { login, isLoggedIn, loading } = useAuth();
@@ -55,28 +57,31 @@ export default function LoginPage() {
         window.location.href = `${backendUrl}/api/auth/google`;
     };
 
+    const inputClasses = "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all placeholder:text-zinc-600";
+    const labelClasses = "block text-sm font-medium text-zinc-400 mb-1";
+
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-            <div className="w-full max-w-md space-y-8">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-                        Sign in to your account
+        <div className="flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8 relative z-10">
+            <GlassCard className="w-full max-w-md space-y-8 p-8 md:p-10">
+                <div className="text-center">
+                    <h2 className="text-3xl font-black tracking-tighter text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">
+                        Welcome Back
                     </h2>
-                    <p className="mt-2 text-center text-sm text-gray-600">
+                    <p className="mt-2 text-sm text-zinc-400">
                         Or{" "}
                         <Link
                             href="/register"
-                            className="font-medium text-black hover:text-gray-800 underline"
+                            className="font-medium text-cyan-400 hover:text-cyan-300 transition-colors"
                         >
-                            Sign up to get started
+                            start your journey
                         </Link>
                     </p>
                 </div>
+
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-                    <input type="hidden" name="remember" value="true" />
-                    <div className="-space-y-px rounded-md shadow-sm">
+                    <div className="space-y-4">
                         <div>
-                            <label htmlFor="email-address" className="sr-only">
+                            <label htmlFor="email-address" className={labelClasses}>
                                 Email address
                             </label>
                             <input
@@ -87,12 +92,12 @@ export default function LoginPage() {
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="relative block w-full rounded-t-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6 px-3"
-                                placeholder="Email address"
+                                className={inputClasses}
+                                placeholder="neo@matrix.com"
                             />
                         </div>
                         <div>
-                            <label htmlFor="password" className="sr-only">
+                            <label htmlFor="password" className={labelClasses}>
                                 Password
                             </label>
                             <input
@@ -103,31 +108,30 @@ export default function LoginPage() {
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="relative block w-full rounded-b-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6 px-3"
-                                placeholder="Password"
+                                className={inputClasses}
+                                placeholder="••••••••"
                             />
                         </div>
                     </div>
 
-
-
                     <div>
-                        <button
+                        <NeonButton
                             type="submit"
                             disabled={isSubmitting}
-                            className="group relative flex w-full justify-center rounded-md bg-black px-3 py-2 text-sm font-semibold text-white hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black disabled:opacity-70"
+                            className="w-full justify-center"
+                            variant="primary"
                         >
                             {isSubmitting ? "Signing in..." : "Sign in"}
-                        </button>
+                        </NeonButton>
                     </div>
                 </form>
 
-                <div className="relative">
+                <div className="relative my-6">
                     <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-gray-300" />
+                        <div className="w-full border-t border-white/10" />
                     </div>
                     <div className="relative flex justify-center text-sm">
-                        <span className="bg-gray-50 px-2 text-gray-500">
+                        <span className="bg-[#0b0b0b] px-2 text-zinc-500">
                             Or continue with
                         </span>
                     </div>
@@ -136,7 +140,7 @@ export default function LoginPage() {
                 <div>
                     <button
                         onClick={handleGoogleLogin}
-                        className="flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent"
+                        className="flex w-full items-center justify-center gap-3 rounded-xl bg-white/5 border border-white/10 px-3 py-3 text-sm font-semibold text-white hover:bg-white/10 transition-colors"
                     >
                         <svg className="h-5 w-5" viewBox="0 0 24 24">
                             <path
@@ -159,7 +163,7 @@ export default function LoginPage() {
                         <span className="text-sm font-semibold leading-6">Google</span>
                     </button>
                 </div>
-            </div>
+            </GlassCard>
         </div>
     );
 }

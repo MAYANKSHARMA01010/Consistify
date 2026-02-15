@@ -2,6 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { Task, Priority } from '../types/dashboard';
 import { dailyStatusApi } from '../../../utils/api';
 import toast from 'react-hot-toast';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { NeonButton } from '@/components/ui/NeonButton';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/utils/cn';
 
 interface TaskListProps {
     tasks: Task[];
@@ -43,10 +47,10 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onUpdateTa
 
     const getPriorityColor = (priority: Priority) => {
         switch (priority) {
-            case "HIGH": return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300";
-            case "MEDIUM": return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300";
-            case "LOW": return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300";
-            default: return "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400";
+            case "HIGH": return "bg-red-500/20 text-red-300 border-red-500/30";
+            case "MEDIUM": return "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
+            case "LOW": return "bg-blue-500/20 text-blue-300 border-blue-500/30";
+            default: return "bg-zinc-500/20 text-zinc-300 border-zinc-500/30";
         }
     };
 
@@ -115,135 +119,152 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onUpdateTa
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col h-full overflow-hidden min-h-[300px]">
-            <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
-                <h3 className="font-semibold text-gray-900 dark:text-white">Today's Tasks</h3>
-                <div className="flex items-center gap-2 text-xs">
-                    <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-0.5 rounded-full">
-                        {completedCount} ✓
+        <GlassCard className="flex flex-col h-full overflow-hidden min-h-[400px] p-0">
+            <div className="p-4 border-b border-white/5 flex justify-between items-center bg-white/5 backdrop-blur-sm">
+                <h3 className="font-bold text-white tracking-wide">Today's Tasks</h3>
+                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
+                    <span className="bg-green-500/10 text-green-400 px-2 py-1 rounded-md border border-green-500/20">
+                        {completedCount} Done
                     </span>
-                    <span className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 px-2 py-0.5 rounded-full">
-                        {pendingCount} ⏳
-                    </span>
-                    <span className="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full">
-                        {totalCount} Total
+                    <span className="bg-yellow-500/10 text-yellow-400 px-2 py-1 rounded-md border border-yellow-500/20">
+                        {pendingCount} Left
                     </span>
                 </div>
             </div>
 
-            <div className="overflow-y-auto flex-1 p-2">
+            <div className="overflow-y-auto flex-1 p-4 custom-scrollbar">
                 {sortedTasks.length === 0 ? (
-                    <div className="h-40 flex items-center justify-center text-gray-400 text-sm text-center px-6">
-                        <p>All caught up! 🎉<br />Add a new task to get started.</p>
+                    <div className="h-40 flex flex-col items-center justify-center text-zinc-500 text-sm text-center px-6">
+                        <span className="text-4xl mb-4 opacity-50">✨</span>
+                        <p>All clear!<br />Add a task to start your streak.</p>
                     </div>
                 ) : (
-                    <ul className="space-y-1">
-                        {sortedTasks.map((task) => (
-                            <li
-                                key={task.id}
-                                className={`group flex items-center gap-3 p-3 rounded-lg transition-colors ${editingTaskId === task.id ? "bg-indigo-50 dark:bg-indigo-900/20 ring-1 ring-indigo-500" : "hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
-                                    } ${task.completed && editingTaskId !== task.id ? "opacity-60" : ""} ${togglingTaskId === task.id ? "pointer-events-none opacity-50" : ""}`}
-                                onClick={() => !editingTaskId && handleToggleComplete(task.id, task.completed)}
-                            >
-                                {editingTaskId === task.id ? (
-                                    <div className="flex-1 flex gap-2 items-center" onClick={(e) => e.stopPropagation()}>
-                                        <input
-                                            type="text"
-                                            value={editTitle}
-                                            onChange={(e) => setEditTitle(e.target.value)}
-                                            className="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
-                                            autoFocus
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter') saveEdit(task.id);
-                                                if (e.key === 'Escape') cancelEditing();
-                                            }}
-                                        />
-                                        <select
-                                            value={editPriority}
-                                            onChange={(e) => setEditPriority(e.target.value as Priority)}
-                                            className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
-                                        >
-                                            <option value="LOW">Low</option>
-                                            <option value="MEDIUM">Medium</option>
-                                            <option value="HIGH">High</option>
-                                        </select>
-                                        <button onClick={() => saveEdit(task.id)} className="text-green-600 hover:text-green-700 p-1">
-                                            ✓
-                                        </button>
-                                        <button onClick={cancelEditing} className="text-red-500 hover:text-red-600 p-1">
-                                            ✕
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${task.completed
-                                            ? "bg-green-500 border-green-500 text-white"
-                                            : "border-gray-300 dark:border-gray-500 group-hover:border-indigo-500"
-                                            }`}>
-                                            {task.completed && (
-                                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                                </svg>
-                                            )}
+                    <ul className="space-y-2">
+                        <AnimatePresence mode='popLayout'>
+                            {sortedTasks.map((task) => (
+                                <motion.li
+                                    layout
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    key={task.id}
+                                    className={cn(
+                                        "group flex items-center gap-3 p-3 rounded-xl transition-all border border-transparent",
+                                        editingTaskId === task.id ? "bg-white/10 ring-1 ring-cyan-500/50" : "hover:bg-white/5 hover:border-white/10 cursor-pointer",
+                                        task.completed && editingTaskId !== task.id ? "opacity-50 grayscale-[0.5]" : "",
+                                        togglingTaskId === task.id ? "pointer-events-none opacity-50" : ""
+                                    )}
+                                    onClick={() => !editingTaskId && handleToggleComplete(task.id, task.completed)}
+                                >
+                                    {editingTaskId === task.id ? (
+                                        <div className="flex-1 flex gap-2 items-center" onClick={(e) => e.stopPropagation()}>
+                                            <input
+                                                type="text"
+                                                value={editTitle}
+                                                onChange={(e) => setEditTitle(e.target.value)}
+                                                className="flex-1 px-3 py-2 text-sm bg-black/50 border border-white/20 rounded-lg focus:outline-none focus:ring-1 focus:ring-cyan-500 text-white"
+                                                autoFocus
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') saveEdit(task.id);
+                                                    if (e.key === 'Escape') cancelEditing();
+                                                }}
+                                            />
+                                            <select
+                                                value={editPriority}
+                                                onChange={(e) => setEditPriority(e.target.value as Priority)}
+                                                className="px-2 py-2 text-xs bg-black/50 border border-white/20 rounded-lg focus:outline-none focus:ring-1 focus:ring-cyan-500 text-white"
+                                            >
+                                                <option value="LOW">Low</option>
+                                                <option value="MEDIUM">Medium</option>
+                                                <option value="HIGH">High</option>
+                                            </select>
+                                            <button onClick={() => saveEdit(task.id)} className="text-green-400 hover:text-green-300 p-2 hover:bg-green-400/10 rounded-lg">
+                                                ✓
+                                            </button>
+                                            <button onClick={cancelEditing} className="text-red-400 hover:text-red-300 p-2 hover:bg-red-400/10 rounded-lg">
+                                                ✕
+                                            </button>
                                         </div>
-
-                                        <div className="flex-1 min-w-0">
-                                            <p className={`text-sm font-medium truncate ${task.completed
-                                                ? "text-gray-500 line-through decoration-gray-400"
-                                                : "text-gray-900 dark:text-white"
-                                                }`}>
-                                                {task.taskTitle || task.title}
-                                            </p>
-                                            {task.endDate && !task.completed && (
-                                                <p className="text-xs text-gray-400 mt-0.5">
-                                                    Due {new Date(task.endDate).toLocaleDateString()}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        <div className="flex items-center gap-2">
-                                            {!task.completed && (
-                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${getPriorityColor(task.taskPriority || task.priority)}`}>
-                                                    {task.taskPriority || task.priority}
-                                                </span>
-                                            )}
-
-                                            <div className={`flex items-center gap-2 ${task.completed ? "invisible" : ""}`}>
-                                                <button
-                                                    onClick={(e) => startEditing(task, e)}
-                                                    className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all"
-                                                    title="Edit Task"
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                </button>
-
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        onDeleteTask?.(task.id);
-                                                    }}
-                                                    className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-all"
-                                                    title="Delete Task"
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
+                                    ) : (
+                                        <>
+                                            <div className={cn(
+                                                "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300",
+                                                task.completed
+                                                    ? "bg-cyan-500 border-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.5)]"
+                                                    : "border-zinc-600 group-hover:border-cyan-500/50 bg-transparent"
+                                            )}>
+                                                {task.completed && (
+                                                    <motion.svg
+                                                        initial={{ scale: 0 }}
+                                                        animate={{ scale: 1 }}
+                                                        className="w-4 h-4 font-bold"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                        stroke="currentColor"
+                                                    >
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                                    </motion.svg>
+                                                )}
                                             </div>
-                                        </div>
-                                    </>
-                                )}
-                            </li>
-                        ))}
+
+                                            <div className="flex-1 min-w-0">
+                                                <p className={cn(
+                                                    "text-sm font-medium truncate transition-colors",
+                                                    task.completed ? "text-zinc-500 line-through decoration-zinc-600" : "text-zinc-100"
+                                                )}>
+                                                    {task.taskTitle || task.title}
+                                                </p>
+                                                {task.endDate && !task.completed && (
+                                                    <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">
+                                                        Due {new Date(task.endDate).toLocaleDateString()}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                {!task.completed && (
+                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border uppercase tracking-wide ${getPriorityColor(task.taskPriority || task.priority)}`}>
+                                                        {task.taskPriority || task.priority}
+                                                    </span>
+                                                )}
+
+                                                <div className={cn("flex items-center gap-1 transition-opacity", task.completed ? "invisible" : "opacity-0 group-hover:opacity-100")}>
+                                                    <button
+                                                        onClick={(e) => startEditing(task, e)}
+                                                        className="p-1.5 text-zinc-400 hover:text-cyan-400 hover:bg-white/5 rounded-lg transition-all"
+                                                        title="Edit Task"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
+                                                    </button>
+
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            onDeleteTask?.(task.id);
+                                                        }}
+                                                        className="p-1.5 text-zinc-400 hover:text-red-400 hover:bg-white/5 rounded-lg transition-all"
+                                                        title="Delete Task"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </motion.li>
+                            ))}
+                        </AnimatePresence>
                     </ul>
                 )}
             </div>
 
-            <div className="p-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80">
+            <div className="p-4 border-t border-white/5 bg-white/5">
                 {isAdding ? (
-                    <form onSubmit={handleSubmit} className="space-y-2">
+                    <form onSubmit={handleSubmit} className="space-y-3">
                         <div className="flex gap-2">
                             <input
                                 type="text"
@@ -252,7 +273,7 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onUpdateTa
                                 value={newTaskTitle}
                                 onChange={(e) => setNewTaskTitle(e.target.value)}
                                 disabled={isSubmitting}
-                                className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                                className="flex-1 px-4 py-2 text-sm bg-black/50 border border-white/20 rounded-xl focus:outline-none focus:ring-1 focus:ring-cyan-500 text-white placeholder:text-zinc-600"
                             />
                         </div>
                         <div className="flex items-center gap-2">
@@ -260,7 +281,7 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onUpdateTa
                                 value={newTaskPriority}
                                 onChange={(e) => setNewTaskPriority(e.target.value as Priority)}
                                 disabled={isSubmitting}
-                                className="px-2 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+                                className="px-3 py-2 text-xs bg-black/50 border border-white/20 rounded-lg focus:outline-none focus:ring-1 focus:ring-cyan-500 text-white"
                             >
                                 <option value="LOW">Low Priority</option>
                                 <option value="MEDIUM">Medium Priority</option>
@@ -271,28 +292,30 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onUpdateTa
                                 type="button"
                                 onClick={() => setIsAdding(false)}
                                 disabled={isSubmitting}
-                                className="px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg"
+                                className="px-3 py-1.5 text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                             >
                                 Cancel
                             </button>
-                            <button
+                            <NeonButton
                                 type="submit"
                                 disabled={isSubmitting || !newTaskTitle.trim()}
-                                className="px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                                variant="primary"
+                                className="px-4 py-2 text-xs"
                             >
-                                {isSubmitting ? "Adding..." : "Add Task"}
-                            </button>
+                                {isSubmitting ? "Adding..." : "Add"}
+                            </NeonButton>
                         </div>
                     </form>
                 ) : (
-                    <button
+                    <NeonButton
                         onClick={() => setIsAdding(true)}
-                        className="w-full py-2 px-4 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500 transition-all shadow-sm"
+                        variant="secondary"
+                        className="w-full justify-center border-dashed border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500"
                     >
                         + Add New Task
-                    </button>
+                    </NeonButton>
                 )}
             </div>
-        </div>
+        </GlassCard>
     );
 };

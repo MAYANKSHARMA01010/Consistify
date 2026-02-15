@@ -11,6 +11,7 @@ import { TaskList } from "./components/TaskList";
 import { DailyHistory } from "./components/DailyHistory";
 
 import { useDashboardData } from "./hooks/useDashboardData";
+import { GlassCard } from "@/components/ui/GlassCard";
 
 const motivationalQuotes = [
     "Small steps every day lead to big results.",
@@ -51,10 +52,10 @@ export default function DashboardPage() {
 
     if (loading || dataLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+            <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">Loading your dashboard...</p>
+                    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+                    <p className="text-zinc-500 text-sm animate-pulse">Loading consistency data...</p>
                 </div>
             </div>
         );
@@ -63,88 +64,93 @@ export default function DashboardPage() {
     if (!isLoggedIn) return null;
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <main className="p-6">
-                <div className="max-w-6xl mx-auto space-y-8">
-
-                    <header>
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                            Hello, {user?.name?.split(' ')[0] || "User"} 👋
+        <div className="min-h-screen py-24 px-6">
+            <main className="max-w-7xl mx-auto space-y-8">
+                <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-purple-200 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                            Hello, {user?.name?.split(' ')[0] || "User"}
                         </h1>
-                        <p className="text-gray-500 dark:text-gray-400 mt-1 italic">
+                        <p className="text-zinc-400 mt-2 italic font-light">
                             "{quote}"
                         </p>
-                    </header>
+                    </div>
+                    <div className="text-right hidden md:block">
+                        <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Today's Date</p>
+                        <p className="text-xl font-mono text-cyan-400">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                    </div>
+                </header>
 
-                    <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <StatsCard
-                            title="Completed Today"
-                            value={stats.completedToday}
-                            trend="up"
-                            icon={<span className="text-green-500">✓</span>}
-                        />
-                        <StatsCard
-                            title="Pending"
-                            value={stats.pendingTasks}
-                            trend={stats.pendingTasks > 5 ? "down" : "neutral"}
-                            icon={<span className="text-yellow-500">⏳</span>}
-                        />
-                        <StatsCard
-                            title="Streak"
-                            value={`${stats.streak} Days`}
-                            trend="neutral"
-                            description={`Best: ${stats.maxStreak || 0} Days`}
-                            icon={<span className="text-orange-500">🔥</span>}
-                        />
-                        <StatsCard
-                            title="Points (Last 7 Days)"
-                            value={stats.pointsLastWeek}
-                            trend="up"
-                            icon={<span className="text-amber-500">⭐</span>}
-                        />
-                    </section>
+                <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <StatsCard
+                        title="Completed Today"
+                        value={stats.completedToday}
+                        trend="up"
+                        icon={<span className="text-green-400 text-xl">✓</span>}
+                    />
+                    <StatsCard
+                        title="Pending"
+                        value={stats.pendingTasks}
+                        trend={stats.pendingTasks > 5 ? "down" : "neutral"}
+                        icon={<span className="text-yellow-400 text-xl">⏳</span>}
+                    />
+                    <StatsCard
+                        title="Streak"
+                        value={`${stats.streak}`}
+                        trend="neutral"
+                        description={`Best: ${stats.maxStreak || 0} Days`}
+                        icon={<span className="text-orange-400 text-xl">🔥</span>}
+                    />
+                    <StatsCard
+                        title="Points (Last 7 Days)"
+                        value={stats.pointsLastWeek}
+                        trend="up"
+                        icon={<span className="text-amber-400 text-xl">⭐</span>}
+                    />
+                </section>
 
-                    <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-                        <div className="lg:col-span-1 flex flex-col">
-                            {selectedDaySummary || stats.focus || stats.mood ? (
-                                <DailyStatus
-                                    date={selectedDaySummary?.date || selectedDate}
-                                    focus={selectedDaySummary?.focus || stats.focus || ""}
-                                    mood={selectedDaySummary?.mood || stats.mood || "NORMAL"}
-                                    note={selectedDaySummary?.notes || stats.notes || ""}
-                                    onUpdate={updateDailyStatus}
-                                />
-                            ) : (
-                                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 h-full flex flex-col items-center justify-center text-center min-h-[200px]">
-                                    <span className="text-4xl mb-4">📝</span>
-                                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">No Focus Set</h3>
-                                    <p className="text-gray-500 text-sm mt-2 mb-4">Define your focus for today</p>
-                                    <button
-                                        onClick={() => updateDailyStatus({ focus: "Today's Main Goal", mood: "NORMAL" })}
-                                        className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline text-sm"
-                                    >
-                                        Set Default Focus & Energy
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="lg:col-span-2 flex flex-col">
-                            <TaskList
-                                tasks={tasks}
-                                onAddTask={addTask}
-                                onUpdateTask={updateTask}
-                                onDeleteTask={deleteTask}
-                                onRefresh={refetch}
+                <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+                    <div className="lg:col-span-1 flex flex-col h-full">
+                        {selectedDaySummary || stats.focus || stats.mood ? (
+                            <DailyStatus
+                                date={selectedDaySummary?.date || selectedDate}
+                                focus={selectedDaySummary?.focus || stats.focus || ""}
+                                mood={selectedDaySummary?.mood || stats.mood || "NORMAL"}
+                                note={selectedDaySummary?.notes || stats.notes || ""}
+                                onUpdate={updateDailyStatus}
                             />
-                        </div>
-                    </section>
+                        ) : (
+                            <GlassCard className="p-8 h-full flex flex-col items-center justify-center text-center min-h-[300px]">
+                                <span className="text-5xl mb-6 opacity-30 grayscale">📝</span>
+                                <h3 className="text-xl font-bold text-white mb-2">No Focus Set</h3>
+                                <p className="text-zinc-500 text-sm mb-6 max-w-[200px]">Define your main goal and energy level for today to start tracking.</p>
+                                <button
+                                    onClick={() => updateDailyStatus({ focus: "Today's Main Goal", mood: "NORMAL" })}
+                                    className="text-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-widest text-xs border-b border-cyan-500/30 hover:border-cyan-400 transition-all"
+                                >
+                                    Set Default Focus
+                                </button>
+                            </GlassCard>
+                        )}
+                    </div>
 
-                    <section>
-                        <DailyHistory history={history} />
-                    </section>
+                    <div className="lg:col-span-2 flex flex-col h-full">
+                        <TaskList
+                            tasks={tasks}
+                            onAddTask={addTask}
+                            onUpdateTask={updateTask}
+                            onDeleteTask={deleteTask}
+                            onRefresh={refetch}
+                        />
+                    </div>
+                </section>
 
-                </div>
+                <section>
+                    {/* We might need to wrap History in a GlassCard inside the component or here. Let's see the component first. 
+                         For now, passing props as is. */}
+                    <DailyHistory history={history} />
+                </section>
+
             </main>
         </div>
     );

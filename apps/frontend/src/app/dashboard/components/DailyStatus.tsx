@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { DailyStatusData, Mood } from '../types/dashboard';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { NeonButton } from '@/components/ui/NeonButton';
 
 interface DailyStatusProps extends DailyStatusData {
     onUpdate?: (data: { focus?: string; mood?: Mood; notes?: string }) => void;
@@ -17,8 +19,6 @@ export const DailyStatus: React.FC<DailyStatusProps> = ({ date, focus, mood, not
         setEditNotes(note || "");
     }, [focus, mood, note, date]);
 
-    const isToday = new Date().toISOString().split('T')[0] === date;
-
     const getMoodEmoji = (mood: Mood | undefined) => {
         switch (mood) {
             case "HIGH": return "⚡️";
@@ -34,36 +34,39 @@ export const DailyStatus: React.FC<DailyStatusProps> = ({ date, focus, mood, not
         setIsEditing(false);
     };
 
+    const inputClasses = "w-full px-4 py-3 bg-black/30 border border-white/10 rounded-xl text-sm text-white focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500/50 outline-none transition-all placeholder:text-zinc-600";
+    const labelClasses = "block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2";
+
     if (isEditing) {
         return (
-            <div className="bg-gradient-to-br from-indigo-50 to-white dark:from-gray-800 dark:to-gray-900 p-6 rounded-xl shadow-sm border border-indigo-100 dark:border-gray-700">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-sm font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider">Set Status</h3>
-                    <button onClick={() => setIsEditing(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">✕</button>
+            <GlassCard className="p-6 h-full">
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-widest">Set Status</h3>
+                    <button onClick={() => setIsEditing(false)} className="text-zinc-500 hover:text-white transition-colors">✕</button>
                 </div>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
-                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Primary Focus</label>
+                        <label className={labelClasses}>Primary Focus</label>
                         <input
                             type="text"
                             value={editFocus}
                             onChange={(e) => setEditFocus(e.target.value)}
                             placeholder="What's your main goal today?"
-                            className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                            className={inputClasses}
                             required
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Energy Level</label>
-                        <div className="flex gap-2">
+                        <label className={labelClasses}>Energy Level</label>
+                        <div className="flex gap-3">
                             {(["LOW", "NORMAL", "HIGH"] as Mood[]).map((m) => (
                                 <button
                                     key={m}
                                     type="button"
                                     onClick={() => setEditMood(m)}
-                                    className={`flex-1 py-2 text-xl rounded-lg border transition-all ${editMood === m
-                                        ? "bg-indigo-100 border-indigo-300 dark:bg-indigo-900 dark:border-indigo-700"
-                                        : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                                    className={`flex-1 py-3 text-2xl rounded-xl border transition-all ${editMood === m
+                                        ? "bg-cyan-500/20 border-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+                                        : "bg-black/30 border-white/10 hover:bg-white/5 text-zinc-500"
                                         }`}
                                 >
                                     {getMoodEmoji(m)}
@@ -72,82 +75,55 @@ export const DailyStatus: React.FC<DailyStatusProps> = ({ date, focus, mood, not
                         </div>
                     </div>
                     <div>
-                        <div className="flex justify-between items-center mb-1">
-                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Notes / Reflection</label>
+                        <div className="flex justify-between items-center mb-2">
+                            <label className={labelClasses}>Notes / Reflection</label>
                             <button
                                 type="button"
                                 onClick={() => {
                                     setEditNotes(prev => prev ? prev + "\n• " : "• ");
                                 }}
-                                className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                                className="text-[10px] font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 uppercase tracking-wider"
                             >
-                                <span className="text-lg leading-none">•</span> Add Bullet Point
+                                <span className="text-lg leading-none">+</span> Bullet Point
                             </button>
                         </div>
                         <textarea
                             value={editNotes}
                             onChange={(e) => setEditNotes(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    const textarea = e.currentTarget;
-                                    const cursorPosition = textarea.selectionStart;
-                                    const textBeforeCursor = editNotes.substring(0, cursorPosition);
-                                    const textAfterCursor = editNotes.substring(cursorPosition);
-
-                                    const lastLineIndex = textBeforeCursor.lastIndexOf('\n');
-                                    const currentLine = textBeforeCursor.substring(lastLineIndex + 1);
-
-                                    const bulletMatch = currentLine.match(/^(\s*[•-]\s*)/);
-
-                                    if (bulletMatch) {
-                                        const newText = textBeforeCursor + "\n" + bulletMatch[1] + textAfterCursor;
-                                        setEditNotes(newText);
-                                        setTimeout(() => {
-                                            textarea.selectionStart = textarea.selectionEnd = cursorPosition + bulletMatch[1].length + 1;
-                                        }, 0);
-                                    } else {
-                                        const newText = textBeforeCursor + "\n" + textAfterCursor;
-                                        setEditNotes(newText);
-                                        setTimeout(() => {
-                                            textarea.selectionStart = textarea.selectionEnd = cursorPosition + 1;
-                                        }, 0);
-                                    }
-                                }
-                            }}
                             placeholder="How did the day go? Any blockers or wins?"
-                            className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all resize-none h-24 font-mono"
+                            className={`${inputClasses} resize-none h-32 font-mono text-xs leading-relaxed`}
                         />
                     </div>
-                    <button
+                    <NeonButton
                         type="submit"
-                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 rounded-lg text-sm transition-colors shadow-sm"
+                        className="w-full justify-center"
+                        variant="primary"
                     >
                         Save Status
-                    </button>
+                    </NeonButton>
                 </form>
-            </div>
+            </GlassCard>
         );
     }
 
     return (
-        <div className="bg-gradient-to-br from-indigo-50 to-white dark:from-gray-800 dark:to-gray-900 p-6 rounded-xl shadow-sm border border-indigo-100 dark:border-gray-700 h-full flex flex-col">
+        <GlassCard className="p-6 h-full flex flex-col">
             <div className="flex justify-between items-center mb-6">
-                <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold px-2 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 rounded-lg uppercase tracking-wider">
+                <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-bold px-2 py-1 bg-cyan-500/10 text-cyan-400 rounded-md border border-cyan-500/20 uppercase tracking-widest">
                         Today's Status
                     </span>
-                    <span className="text-gray-500 dark:text-gray-400 text-sm">{new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                    <span className="text-zinc-500 text-xs font-mono">{new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                 </div>
                 <div className="flex items-center gap-3">
                     {mood && (
-                        <div className="text-2xl" title={`Energy Level: ${mood}`}>
+                        <div className="text-2xl drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]" title={`Energy Level: ${mood}`}>
                             {getMoodEmoji(mood)}
                         </div>
                     )}
                     <button
                         onClick={() => setIsEditing(true)}
-                        className="p-1.5 text-gray-400 hover:bg-indigo-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                        className="p-2 text-zinc-500 hover:text-white hover:bg-white/5 rounded-lg transition-all"
                         title="Edit Status & Notes"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,28 +133,28 @@ export const DailyStatus: React.FC<DailyStatusProps> = ({ date, focus, mood, not
                 </div>
             </div>
 
-            <div className="mb-4">
-                <h4 className="text-gray-400 dark:text-gray-500 text-xs uppercase font-medium mb-1">Primary Focus</h4>
-                <p className="text-lg font-semibold text-gray-900 dark:text-white leading-tight">
-                    {focus || "No focus set"}
+            <div className="mb-6">
+                <h4 className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-2">Primary Focus</h4>
+                <p className="text-xl font-medium text-white leading-tight drop-shadow-md">
+                    {focus || <span className="text-zinc-600 italic">No focus set...</span>}
                 </p>
-
-                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700/50">
-                    <h4 className="text-gray-400 dark:text-gray-500 text-xs uppercase font-medium mb-1">Notes</h4>
-                    {note ? (
-                        <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
-                            {note}
-                        </p>
-                    ) : (
-                        <button
-                            onClick={() => setIsEditing(true)}
-                            className="text-sm text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 flex items-center gap-1 font-medium transition-colors"
-                        >
-                            <span className="text-lg leading-none">+</span> Add notes for this day
-                        </button>
-                    )}
-                </div>
             </div>
-        </div>
+
+            <div className="flex-1 border-t border-white/5 pt-4">
+                <h4 className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-2">Notes</h4>
+                {note ? (
+                    <p className="text-sm text-zinc-300 whitespace-pre-wrap font-light leading-relaxed">
+                        {note}
+                    </p>
+                ) : (
+                    <button
+                        onClick={() => setIsEditing(true)}
+                        className="text-sm text-zinc-600 hover:text-cyan-400 flex items-center gap-2 transition-colors mt-2"
+                    >
+                        <span className="text-lg leading-none opacity-50">+</span> Add notes for this day
+                    </button>
+                )}
+            </div>
+        </GlassCard>
     );
 };

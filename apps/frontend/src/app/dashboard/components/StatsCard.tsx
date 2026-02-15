@@ -1,4 +1,5 @@
 import React, { ReactNode } from 'react';
+import { GlassCard } from '@/components/ui/GlassCard';
 
 interface StatsCardProps {
     title: string;
@@ -11,9 +12,9 @@ interface StatsCardProps {
 export const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, trend, description }) => {
     const getTrendColor = (trend: "up" | "down" | "neutral" | undefined) => {
         switch (trend) {
-            case "up": return "text-green-500";
-            case "down": return "text-red-500";
-            default: return "text-gray-400";
+            case "up": return "text-green-400";
+            case "down": return "text-red-400";
+            default: return "text-zinc-500";
         }
     };
 
@@ -26,26 +27,26 @@ export const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, trend,
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col justify-between h-full">
+        <GlassCard className="flex flex-col justify-between h-full p-6">
             <div className="flex justify-between items-start mb-4">
-                <h3 className="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase tracking-wider">{title}</h3>
-                {icon && <div className="text-gray-400 dark:text-gray-500">{icon}</div>}
+                <h3 className="text-zinc-400 text-xs font-bold uppercase tracking-widest">{title}</h3>
+                {icon && <div className="text-zinc-500 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">{icon}</div>}
             </div>
 
             <div>
                 <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold text-gray-900 dark:text-white">{value}</span>
+                    <span className="text-3xl font-black text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">{value}</span>
                     {trend && (
-                        <span className={`text-sm font-medium ${getTrendColor(trend)} flex items-center gap-1`}>
+                        <span className={`text-sm font-bold ${getTrendColor(trend)} flex items-center gap-1`}>
                             <span>{getTrendIcon(trend)}</span>
                         </span>
                     )}
                 </div>
 
                 {description && (
-                    <p className="text-gray-400 dark:text-gray-500 text-xs mt-2">{description}</p>
+                    <p className="text-zinc-500 text-xs mt-2">{description}</p>
                 )}
             </div>
-        </div>
+        </GlassCard>
     );
 };

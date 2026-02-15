@@ -9,12 +9,14 @@ import toast from "react-hot-toast";
 import { getErrorMessage } from "../../utils/api";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { NeonButton } from "@/components/ui/NeonButton";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
     const { login, isLoggedIn, loading } = useAuth();
     const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
@@ -96,14 +98,14 @@ export default function LoginPage() {
                                 placeholder="neo@matrix.com"
                             />
                         </div>
-                        <div>
+                        <div className="relative">
                             <label htmlFor="password" className={labelClasses}>
                                 Password
                             </label>
                             <input
                                 id="password"
                                 name="password"
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 autoComplete="current-password"
                                 required
                                 value={password}
@@ -111,6 +113,13 @@ export default function LoginPage() {
                                 className={inputClasses}
                                 placeholder="••••••••"
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-[40px] text-zinc-400 hover:text-white transition-colors"
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
                         </div>
                     </div>
 

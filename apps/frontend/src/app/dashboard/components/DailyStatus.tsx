@@ -2,35 +2,88 @@ import React, { useState } from 'react';
 import { DailyStatusData, Mood } from '../types/dashboard';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { NeonButton } from '@/components/ui/NeonButton';
+import { cn } from '@/utils/cn';
 
 interface DailyStatusProps extends DailyStatusData {
     onUpdate?: (data: { focus?: string; mood?: Mood; notes?: string }) => void;
 }
 
+const MOODS_CONFIG: Record<string, string> = {
+    "LOW": "☕️",
+    "NORMAL": "🙂",
+    "HIGH": "⚡️",
+    "FOCUSED": "🧠",
+    "STRESSED": "🤯",
+    "RELAXED": "😎",
+    "GRATEFUL": "🙏",
+    "TIRED": "😴"
+};
+
+const COMMON_EMOJIS = ["😀", "😍", "🥳", "🥶", "😡", "🤒", "👻", "👽", "🤖", "👾", "💪", "🤙", "💅", "🦄", "🌈", "🔥", "✨", "🎉", "💤", "👀"];
+
 export const DailyStatus: React.FC<DailyStatusProps> = ({ date, focus, mood, note, onUpdate }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editFocus, setEditFocus] = useState(focus || "");
-    const [editMood, setEditMood] = useState<Mood>(mood || "NORMAL");
+    const [editMood, setEditMood] = useState<string>(mood || "NORMAL");
     const [editNotes, setEditNotes] = useState(note || "");
+
+    // Custom mood state
+    const [customMoodName, setCustomMoodName] = useState("");
+    const [customMoodEmoji, setCustomMoodEmoji] = useState("🙂");
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     React.useEffect(() => {
         setEditFocus(focus || "");
-        setEditMood(mood || "NORMAL");
+
+        const currentMood = mood || "NORMAL";
+        // Check if it's a known mood or custom
+        if (MOODS_CONFIG[currentMood]) {
+            setEditMood(currentMood);
+            setCustomMoodName("");
+            setCustomMoodEmoji("🙂");
+        } else if (currentMood.includes('|')) {
+            // It's a custom mood in format "Emoji|Name"
+            const [emoji, name] = currentMood.split('|');
+            setEditMood("CUSTOM");
+            setCustomMoodEmoji(emoji);
+            setCustomMoodName(name);
+        } else {
+            // Legacy or simple custom string
+            setEditMood("CUSTOM");
+            setCustomMoodName(currentMood);
+        }
+
         setEditNotes(note || "");
     }, [focus, mood, note, date]);
 
-    const getMoodEmoji = (mood: Mood | undefined) => {
-        switch (mood) {
-            case "HIGH": return "⚡️";
-            case "NORMAL": return "🙂";
-            case "LOW": return "☕️";
-            default: return "🤔";
-        }
+    const getMoodEmoji = (moodStr: string | undefined) => {
+        if (!moodStr) return "🤔";
+        if (MOODS_CONFIG[moodStr]) return MOODS_CONFIG[moodStr];
+        if (moodStr.includes('|')) return moodStr.split('|')[0];
+        return "🤔";
+    };
+
+    const getMoodLabel = (moodStr: string | undefined) => {
+        if (!moodStr) return "Unknown";
+        if (MOODS_CONFIG[moodStr]) return moodStr;
+        if (moodStr.includes('|')) return moodStr.split('|')[1];
+        return moodStr; // Fallback for plain strings
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onUpdate?.({ focus: editFocus, mood: editMood, notes: editNotes });
+
+        let finalMood = editMood;
+        if (editMood === "CUSTOM") {
+            if (!customMoodName.trim()) {
+                // Determine logic for empty custom mood? Default to NORMAL maybe?
+                finalMood = "NORMAL";
+            } else {
+                finalMood = `${customMoodEmoji}|${customMoodName.trim()}`;
+            }
+        }
+
+        onUpdate?.({ focus: editFocus, mood: finalMood, notes: editNotes });
         setIsEditing(false);
     };
 
@@ -39,7 +92,7 @@ export const DailyStatus: React.FC<DailyStatusProps> = ({ date, focus, mood, not
 
     if (isEditing) {
         return (
-            <GlassCard className="p-6 h-full">
+            <GlassCard className="p-6 h-full overflow-y-auto custom-scrollbar">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-widest">Set Status</h3>
                     <button onClick={() => setIsEditing(false)} className="text-zinc-500 hover:text-white transition-colors">✕</button>
@@ -57,21 +110,83 @@ export const DailyStatus: React.FC<DailyStatusProps> = ({ date, focus, mood, not
                         />
                     </div>
                     <div>
-                        <label className={labelClasses}>Energy Level</label>
-                        <div className="flex gap-3">
-                            {(["LOW", "NORMAL", "HIGH"] as Mood[]).map((m) => (
+                        <label className={labelClasses}>Energy Level & Mood</label>
+                        <div className="grid grid-cols-4 gap-2 mb-3">
+                            {Object.keys(MOODS_CONFIG).map((m) => (
                                 <button
                                     key={m}
                                     type="button"
-                                    onClick={() => setEditMood(m)}
-                                    className={`flex-1 py-3 text-2xl rounded-xl border transition-all ${editMood === m
-                                        ? "bg-cyan-500/20 border-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.3)]"
-                                        : "bg-black/30 border-white/10 hover:bg-white/5 text-zinc-500"
-                                        }`}
+                                    onClick={() => {
+                                        setEditMood(m);
+                                        // Reset custom fields when picking standard
+                                        setCustomMoodName("");
+                                    }}
+                                    className={cn(
+                                        "flex flex-col items-center justify-center p-2 rounded-xl border transition-all gap-1 h-20",
+                                        editMood === m
+                                            ? "bg-cyan-500/20 border-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+                                            : "bg-black/30 border-white/10 hover:bg-white/5 text-zinc-500"
+                                    )}
                                 >
-                                    {getMoodEmoji(m)}
+                                    <span className="text-2xl">{MOODS_CONFIG[m]}</span>
+                                    <span className="text-[9px] font-bold uppercase tracking-wider truncate w-full text-center">{m}</span>
                                 </button>
                             ))}
+                        </div>
+
+                        {/* Custom Mood Section */}
+                        <div className={cn(
+                            "border rounded-xl p-3 transition-all",
+                            editMood === "CUSTOM"
+                                ? "bg-cyan-500/5 border-cyan-500/50"
+                                : "bg-black/20 border-white/5"
+                        )}>
+                            <div className="flex items-center gap-2 mb-2 cursor-pointer" onClick={() => setEditMood("CUSTOM")}>
+                                <div className={cn("w-4 h-4 rounded-full border flex items-center justify-center", editMood === "CUSTOM" ? "border-cyan-500 bg-cyan-500" : "border-zinc-500")}>
+                                    {editMood === "CUSTOM" && <div className="w-2 h-2 rounded-full bg-black"></div>}
+                                </div>
+                                <span className={cn("text-xs font-bold uppercase tracking-wider", editMood === "CUSTOM" ? "text-cyan-400" : "text-zinc-500")}>Custom Mood</span>
+                            </div>
+
+                            {editMood === "CUSTOM" && (
+                                <div className="flex gap-2">
+                                    <div className="relative">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                            className="h-full px-3 bg-black/30 border border-white/10 rounded-xl text-2xl hover:bg-white/5 transition-colors"
+                                        >
+                                            {customMoodEmoji}
+                                        </button>
+
+                                        {showEmojiPicker && (
+                                            <div className="absolute bottom-full left-0 mb-2 p-2 bg-zinc-900 border border-white/10 rounded-xl shadow-xl w-64 flex flex-wrap gap-1 z-50">
+                                                {COMMON_EMOJIS.map(emoji => (
+                                                    <button
+                                                        key={emoji}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setCustomMoodEmoji(emoji);
+                                                            setShowEmojiPicker(false);
+                                                        }}
+                                                        className="p-1.5 hover:bg-white/10 rounded-md text-xl"
+                                                    >
+                                                        {emoji}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <input
+                                        type="text"
+                                        placeholder="Name your mood..."
+                                        className={cn(inputClasses, "py-2 text-xs flex-1")}
+                                        value={customMoodName}
+                                        onChange={(e) => setCustomMoodName(e.target.value)}
+                                        autoFocus
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div>
@@ -117,7 +232,7 @@ export const DailyStatus: React.FC<DailyStatusProps> = ({ date, focus, mood, not
                 </div>
                 <div className="flex items-center gap-3">
                     {mood && (
-                        <div className="text-2xl drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]" title={`Energy Level: ${mood}`}>
+                        <div className="text-2xl drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]" title={`Energy Level: ${getMoodLabel(mood)}`}>
                             {getMoodEmoji(mood)}
                         </div>
                     )}

@@ -12,11 +12,7 @@ enum Role {
   ADMIN
 }
 
-enum Mood {
-  LOW
-  NORMAL
-  HIGH
-}
+// Mood enum removed
 
 enum Priority {
   LOW
@@ -89,7 +85,7 @@ model DailySummary {
   cumulativePoints Int     @default(0)
   consistency      Float
   focus            String?
-  mood             Mood?
+  mood             String? // Changed from Mood enum to String
   notes            String?
   currentStreak    Int     @default(0)
   maxStreak        Int     @default(0)

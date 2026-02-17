@@ -1,4 +1,4 @@
-export type Mood = "LOW" | "NORMAL" | "HIGH";
+export type Mood = string;
 export type Priority = "LOW" | "MEDIUM" | "HIGH";
 
 export interface DashboardStats {

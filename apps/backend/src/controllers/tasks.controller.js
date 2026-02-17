@@ -126,6 +126,20 @@ const updateTask = async (req, res, next) => {
             },
         });
 
+        const today = new Date();
+        today.setUTCHours(0, 0, 0, 0);
+
+        await prisma.dailyTaskStatus.updateMany({
+            where: {
+                taskId: id,
+                date: today
+            },
+            data: {
+                taskTitle: updatedTask.title,
+                taskPriority: updatedTask.priority
+            }
+        });
+
         return res.json(updatedTask);
     } catch (error) {
         next(error);

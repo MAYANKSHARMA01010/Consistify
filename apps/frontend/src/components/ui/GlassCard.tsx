@@ -27,7 +27,7 @@ export function GlassCard({ children, className, variant = "default", ...props }
             {variant === "hover-shine" && (
                 <div className="absolute inset-0 -translate-x-full group-hover:animate-[shine_1s_ease-in-out] bg-gradient-to-r from-transparent via-white/5 to-transparent z-10 pointer-events-none" />
             )}
-            <div className="relative z-20">
+            <div className="relative z-20 h-full">
                 {children}
             </div>
         </motion.div>

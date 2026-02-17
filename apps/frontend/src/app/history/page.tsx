@@ -97,13 +97,22 @@ function HistoryContent() {
         end: endOfMonth(currentMonth),
     });
 
+    const MOODS_CONFIG: Record<string, string> = {
+        "LOW": "☕️",
+        "NORMAL": "🙂",
+        "HIGH": "⚡️",
+        "FOCUSED": "🧠",
+        "STRESSED": "🤯",
+        "RELAXED": "😎",
+        "GRATEFUL": "🙏",
+        "TIRED": "😴"
+    };
+
     const getMoodEmoji = (mood?: string | null) => {
-        switch (mood) {
-            case "HIGH": return "⚡️";
-            case "NORMAL": return "🙂";
-            case "LOW": return "☕️";
-            default: return null;
-        }
+        if (!mood) return null;
+        if (MOODS_CONFIG[mood]) return MOODS_CONFIG[mood];
+        if (mood.includes('|')) return mood.split('|')[0];
+        return "🤔";
     };
 
     const getConsistencyColor = (percentage: number) => {

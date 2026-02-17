@@ -27,15 +27,24 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onUpdateTa
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [togglingTaskId, setTogglingTaskId] = useState<string | null>(null);
 
-    // Edit State
     const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
     const [editTitle, setEditTitle] = useState("");
     const [editPriority, setEditPriority] = useState<Priority>("MEDIUM");
 
-    // Filter & Pagination State
+    type SortOption = 'a-z' | 'z-a' | 'priority-high' | 'priority-low';
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
     const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('ALL');
+    const [sortBy, setSortBy] = useState<SortOption>('a-z');
     const [currentPage, setCurrentPage] = useState(1);
+
+    const getPriorityWeight = (p: Priority | undefined) => {
+        switch (p) {
+            case 'HIGH': return 3;
+            case 'MEDIUM': return 2;
+            case 'LOW': return 1;
+            default: return 0;
+        }
+    };
 
     const filteredTasks = useMemo(() => {
         let filtered = tasks.filter(t => t.isActive);
@@ -50,14 +59,30 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onUpdateTa
             filtered = filtered.filter(t => (t.taskPriority || t.priority) === priorityFilter);
         }
 
-        // Sort: Pending first, then by title
         return filtered.sort((a, b) => {
-            if (a.completed === b.completed) {
-                return a.title.localeCompare(b.title);
+            // First sort by completion status (pending first)
+            if (a.completed !== b.completed) {
+                return a.completed ? 1 : -1;
             }
-            return a.completed ? 1 : -1;
+
+            // Then apply selected sort
+            const pA = a.taskPriority || a.priority;
+            const pB = b.taskPriority || b.priority;
+
+            switch (sortBy) {
+                case 'a-z':
+                    return a.title.localeCompare(b.title);
+                case 'z-a':
+                    return b.title.localeCompare(a.title);
+                case 'priority-high':
+                    return getPriorityWeight(pB) - getPriorityWeight(pA);
+                case 'priority-low':
+                    return getPriorityWeight(pA) - getPriorityWeight(pB);
+                default:
+                    return a.title.localeCompare(b.title);
+            }
         });
-    }, [tasks, statusFilter, priorityFilter]);
+    }, [tasks, statusFilter, priorityFilter, sortBy]);
 
     const paginatedTasks = useMemo(() => {
         const startIndex = (currentPage - 1) * EMS_PER_PAGE;
@@ -159,8 +184,8 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onUpdateTa
                         </div>
                     </div>
 
-                    {/* Filters */}
-                    <div className="flex gap-2 items-center">
+                    {/* Filters & Sort */}
+                    <div className="flex gap-2 items-center flex-wrap">
                         <select
                             value={statusFilter}
                             onChange={(e) => {
@@ -188,15 +213,29 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onUpdateTa
                             <option value="LOW">Low</option>
                         </select>
 
-                        {(statusFilter !== 'ALL' || priorityFilter !== 'ALL') && (
+                        <div className="w-px h-4 bg-white/10 mx-1"></div>
+
+                        <select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value as SortOption)}
+                            className="bg-black/20 text-xs text-zinc-300 border border-white/10 rounded-lg px-2 py-1 focus:outline-none focus:border-cyan-500/50"
+                        >
+                            <option value="a-z">A-Z</option>
+                            <option value="z-a">Z-A</option>
+                            <option value="priority-high">Priority (High-Low)</option>
+                            <option value="priority-low">Priority (Low-High)</option>
+                        </select>
+
+                        {(statusFilter !== 'ALL' || priorityFilter !== 'ALL' || sortBy !== 'a-z') && (
                             <button
                                 onClick={() => {
                                     setStatusFilter('ALL');
                                     setPriorityFilter('ALL');
+                                    setSortBy('a-z');
                                     setCurrentPage(1);
                                 }}
-                                className="p-1 text-zinc-400 hover:text-white hover:bg-white/10 rounded-md transition-colors"
-                                title="Clear Filters"
+                                className="p-1 text-zinc-400 hover:text-white hover:bg-white/10 rounded-md transition-colors ml-auto"
+                                title="Reset View"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -207,7 +246,7 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onUpdateTa
                 </div>
 
                 <div className="overflow-y-auto flex-1 p-4 custom-scrollbar">
-                    {paginatedTasks.length === 0 ? ( // Check paginated tasks for empty state on current page/filter
+                    {paginatedTasks.length === 0 ? (
                         filteredTasks.length === 0 ? (
                             <div className="h-40 flex flex-col items-center justify-center text-zinc-500 text-sm text-center px-6">
                                 <span className="text-4xl mb-4 opacity-50">✨</span>

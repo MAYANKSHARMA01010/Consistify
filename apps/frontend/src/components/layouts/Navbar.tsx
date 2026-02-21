@@ -15,7 +15,7 @@ export default function Navbar() {
 
     const navLinks = [
         { name: "Dashboard", href: "/dashboard" },
-        { name: "History", href: "/history" }, // Added History link
+        { name: "History", href: "/history" },
         { name: "Settings", href: "/settings" },
     ];
 

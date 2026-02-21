@@ -10,6 +10,7 @@ import { DailyStatus } from "./components/DailyStatus";
 import { TaskList } from "./components/TaskList";
 import { HistoryRail } from "./components/HistoryRail";
 
+import { SplashScreen } from "@/components/ui/SplashScreen";
 import { useDashboardData } from "./hooks/useDashboardData";
 import { GlassCard } from "@/components/ui/GlassCard";
 
@@ -51,14 +52,7 @@ export default function DashboardPage() {
     }, [loading, isLoggedIn, router]);
 
     if (loading || dataLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-cyan-500 mx-auto mb-4"></div>
-                    <p className="text-zinc-500 text-sm animate-pulse">Loading consistency data...</p>
-                </div>
-            </div>
-        );
+        return <SplashScreen message="Loading consistency data" />;
     }
 
     if (!isLoggedIn) return null;

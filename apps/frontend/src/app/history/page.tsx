@@ -15,7 +15,8 @@ function HistoryContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    // Date state
+
+
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [monthData, setMonthData] = useState<DailySummary[]>([]);
@@ -24,13 +25,14 @@ function HistoryContent() {
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingTasks, setIsLoadingTasks] = useState(false);
 
-    // Initialize from URL param if present
+
+
     useEffect(() => {
         const dateParam = searchParams.get("date");
         if (dateParam) {
             const date = new Date(dateParam);
             setSelectedDate(date);
-            setCurrentMonth(date); // Jump to that month
+            setCurrentMonth(date);
         }
     }, [searchParams]);
 
@@ -40,7 +42,8 @@ function HistoryContent() {
         }
     }, [loading, isLoggedIn, router]);
 
-    // Fetch data when month changes
+
+
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true);
@@ -61,7 +64,8 @@ function HistoryContent() {
         }
     }, [currentMonth, isLoggedIn]);
 
-    // Update details when selected date changes
+
+
     useEffect(() => {
         const fetchTasks = async (summaryId: string) => {
             setIsLoadingTasks(true);
@@ -133,7 +137,8 @@ function HistoryContent() {
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Calendar Section */}
+
+
                 <div className="lg:col-span-2">
                     <GlassCard className="p-6">
                         <div className="flex justify-between items-center mb-6">
@@ -174,7 +179,8 @@ function HistoryContent() {
                                     </div>
                                 ))}
 
-                                {/* Empty cells for start of month */}
+
+
                                 {Array.from({ length: startOfMonth(currentMonth).getDay() }).map((_, i) => (
                                     <div key={`empty-${i}`} className="aspect-square" />
                                 ))}
@@ -225,7 +231,8 @@ function HistoryContent() {
                     </GlassCard>
                 </div>
 
-                {/* Details Section */}
+
+
                 <div className="lg:col-span-1">
                     <AnimatePresence mode="wait">
                         {selectedDate ? (
@@ -295,7 +302,8 @@ function HistoryContent() {
                 </div>
             </div>
 
-            {/* Task Details Section */}
+
+
             {selectedDate && selectedDayDetails && (
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -313,7 +321,8 @@ function HistoryContent() {
                             </div>
                         ) : dailyTasks.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Completed Tasks */}
+
+
                                 <div className="space-y-4">
                                     <h4 className="text-sm font-bold text-green-400 uppercase tracking-widest border-b border-green-500/20 pb-2 mb-4">
                                         Completed ({dailyTasks.filter(t => t.isCompleted).length})
@@ -333,7 +342,8 @@ function HistoryContent() {
                                     </div>
                                 </div>
 
-                                {/* Incomplete Tasks */}
+
+
                                 <div className="space-y-4">
                                     <h4 className="text-sm font-bold text-red-400 uppercase tracking-widest border-b border-red-500/20 pb-2 mb-4">
                                         Incomplete ({dailyTasks.filter(t => !t.isCompleted).length})

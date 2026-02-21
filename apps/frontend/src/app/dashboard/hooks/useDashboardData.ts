@@ -46,7 +46,8 @@ export const useDashboardData = (isLoggedIn: boolean) => {
             setTasks(tasksData);
             setDailyStatus(statusData);
 
-            // Fill in missing dates for the last 7 days
+
+
             const filledHistory: DailySummary[] = [];
             for (let i = 0; i < 7; i++) {
                 const d = new Date();
@@ -111,11 +112,13 @@ export const useDashboardData = (isLoggedIn: boolean) => {
             await tasksApi.updateTask(id, data);
             toast.success("Task updated!");
 
-            // Refresh tasks
+
+
             const updatedTasks = await tasksApi.getTasks();
             setTasks(updatedTasks);
 
-            // Refresh stats because completing/uncompleting might affect them
+
+
             summaryApi.getTodaySummary().then(setStats);
         } catch (error) {
             console.error(error);
@@ -130,11 +133,13 @@ export const useDashboardData = (isLoggedIn: boolean) => {
             await tasksApi.deleteTask(id);
             toast.success("Task deleted");
 
-            // Refresh tasks
+
+
             const updatedTasks = await tasksApi.getTasks();
             setTasks(updatedTasks);
 
-            // Refresh stats
+
+
             summaryApi.getTodaySummary().then(setStats);
         } catch (error) {
             console.error(error);
@@ -149,7 +154,8 @@ export const useDashboardData = (isLoggedIn: boolean) => {
 
     useEffect(() => {
         if (isToday(selectedDate)) {
-            // If today, use the stats/dailyStatus we already fetch
+
+
             const summary: DailySummary = {
                 id: 'today',
                 date: selectedDate,
@@ -161,17 +167,18 @@ export const useDashboardData = (isLoggedIn: boolean) => {
                 focus: stats.focus,
                 mood: stats.mood,
                 notes: stats.notes,
-                tasks: [], // Added tasks property matching DailySummary interface
+                tasks: [],
             };
             setSelectedDaySummary(summary);
         } else {
-            // Check history first
+
+
             const inHistory = history.find(h => h.date.split('T')[0] === selectedDate);
             if (inHistory) {
                 setSelectedDaySummary(inHistory);
             } else {
-                // Fetch if not in history (optional, or just show empty)
-                // For now, let's try to fetch it specifically or just set empty
+
+
                 summaryApi.getSummaryByRange(selectedDate, selectedDate)
                     .then(res => {
                         if (res && res.length > 0) {
@@ -202,12 +209,13 @@ export const useDashboardData = (isLoggedIn: boolean) => {
             const updated = await summaryApi.updateSummary({ ...data, date: selectedDate });
             toast.success("Status updated!");
 
-            // If we updated today, refresh dashboard
+
+
             if (isToday(selectedDate)) {
                 await fetchDashboardData();
             } else {
-                // If we updated a past date, update history locally or refetch
-                // Refetching history is safer
+
+
                 const today = new Date().toISOString().split('T')[0];
                 const sevenDaysAgo = new Date();
                 sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -215,7 +223,8 @@ export const useDashboardData = (isLoggedIn: boolean) => {
                 const historyData = await summaryApi.getSummaryByRange(startDate, today).catch(() => []);
                 setHistory([...historyData].reverse());
 
-                // Also update selectedDaySummary
+
+
                 setSelectedDaySummary(updated);
             }
         } catch (error) {

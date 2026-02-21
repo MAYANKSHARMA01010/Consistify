@@ -4,16 +4,18 @@ import { useAuth } from "../context/AuthContext";
 import { NeonButton } from "@/components/ui/NeonButton";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { motion } from "framer-motion";
+import { SplashScreen } from "@/components/ui/SplashScreen";
 
 export default function Home() {
   const { isLoggedIn, loading } = useAuth();
 
-  if (loading) return null;
+  if (loading) return <SplashScreen message="Waking up server" />;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center relative z-10 px-6 overflow-hidden">
 
-      {/* Hero Section */}
+
+
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
@@ -47,7 +49,8 @@ export default function Home() {
         </div>
       </motion.div>
 
-      {/* Feature Grid */}
+
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-32 max-w-6xl w-full">
         <GlassCard variant="hover-shine" className="p-8">
           <div className="h-12 w-12 rounded-full bg-purple-500/20 flex items-center justify-center mb-6 text-purple-300">
@@ -74,7 +77,7 @@ export default function Home() {
         </GlassCard>
       </div>
 
-      <div className="h-32"></div> {/* Spacer */}
+      <div className="h-32"></div>
     </div>
   );
 }

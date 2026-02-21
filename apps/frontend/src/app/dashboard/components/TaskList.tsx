@@ -60,12 +60,14 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onUpdateTa
         }
 
         return filtered.sort((a, b) => {
-            // First sort by completion status (pending first)
+
+
             if (a.completed !== b.completed) {
                 return a.completed ? 1 : -1;
             }
 
-            // Then apply selected sort
+
+
             const pA = a.taskPriority || a.priority;
             const pB = b.taskPriority || b.priority;
 
@@ -162,7 +164,8 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onUpdateTa
             setNewTaskTitle("");
             setNewTaskPriority("MEDIUM");
             setIsAdding(false);
-            // Reset filters to see the new task if possible, or stay on current view
+
+
         } finally {
             setIsSubmitting(false);
         }
@@ -184,7 +187,8 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onUpdateTa
                         </div>
                     </div>
 
-                    {/* Filters & Sort */}
+
+
                     <div className="flex gap-2 items-center flex-wrap">
                         <select
                             value={statusFilter}
@@ -381,7 +385,8 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onUpdateTa
                     )}
                 </div>
 
-                {/* Pagination Controls */}
+
+
                 {totalPages > 1 && (
                     <div className="p-3 border-t border-white/5 bg-white/5 flex justify-center items-center gap-2">
                         <button

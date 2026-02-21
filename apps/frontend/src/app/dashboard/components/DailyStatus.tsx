@@ -27,7 +27,8 @@ export const DailyStatus: React.FC<DailyStatusProps> = ({ date, focus, mood, not
     const [editMood, setEditMood] = useState<string>(mood || "NORMAL");
     const [editNotes, setEditNotes] = useState(note || "");
 
-    // Custom mood state
+
+
     const [customMoodName, setCustomMoodName] = useState("");
     const [customMoodEmoji, setCustomMoodEmoji] = useState("🙂");
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -36,19 +37,22 @@ export const DailyStatus: React.FC<DailyStatusProps> = ({ date, focus, mood, not
         setEditFocus(focus || "");
 
         const currentMood = mood || "NORMAL";
-        // Check if it's a known mood or custom
+
+
         if (MOODS_CONFIG[currentMood]) {
             setEditMood(currentMood);
             setCustomMoodName("");
             setCustomMoodEmoji("🙂");
         } else if (currentMood.includes('|')) {
-            // It's a custom mood in format "Emoji|Name"
+
+
             const [emoji, name] = currentMood.split('|');
             setEditMood("CUSTOM");
             setCustomMoodEmoji(emoji);
             setCustomMoodName(name);
         } else {
-            // Legacy or simple custom string
+
+
             setEditMood("CUSTOM");
             setCustomMoodName(currentMood);
         }
@@ -67,7 +71,7 @@ export const DailyStatus: React.FC<DailyStatusProps> = ({ date, focus, mood, not
         if (!moodStr) return "Unknown";
         if (MOODS_CONFIG[moodStr]) return moodStr;
         if (moodStr.includes('|')) return moodStr.split('|')[1];
-        return moodStr; // Fallback for plain strings
+        return moodStr;
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -76,7 +80,8 @@ export const DailyStatus: React.FC<DailyStatusProps> = ({ date, focus, mood, not
         let finalMood = editMood;
         if (editMood === "CUSTOM") {
             if (!customMoodName.trim()) {
-                // Determine logic for empty custom mood? Default to NORMAL maybe?
+
+
                 finalMood = "NORMAL";
             } else {
                 finalMood = `${customMoodEmoji}|${customMoodName.trim()}`;
@@ -118,7 +123,8 @@ export const DailyStatus: React.FC<DailyStatusProps> = ({ date, focus, mood, not
                                     type="button"
                                     onClick={() => {
                                         setEditMood(m);
-                                        // Reset custom fields when picking standard
+
+
                                         setCustomMoodName("");
                                     }}
                                     className={cn(
@@ -134,7 +140,8 @@ export const DailyStatus: React.FC<DailyStatusProps> = ({ date, focus, mood, not
                             ))}
                         </div>
 
-                        {/* Custom Mood Section */}
+
+
                         <div className={cn(
                             "border rounded-xl p-3 transition-all",
                             editMood === "CUSTOM"

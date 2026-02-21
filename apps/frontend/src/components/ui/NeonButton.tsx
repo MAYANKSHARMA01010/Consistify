@@ -35,7 +35,8 @@ export function NeonButton({ children, className, variant = "primary", href, ...
                     className="block w-full h-full"
                 >
                     {content}
-                    {/* Glow Effect */}
+
+
                     <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shine_1.5s_ease-in-out]" />
                 </motion.span>
             </Link>

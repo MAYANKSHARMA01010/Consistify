@@ -12,6 +12,7 @@ interface TaskListProps {
     onAddTask: (title: string, priority?: Priority) => Promise<void>;
     onUpdateTask?: (id: string, data: Partial<Task>) => Promise<void>;
     onDeleteTask?: (id: string) => Promise<void>;
+    onToggleTask?: (id: string, completed: boolean) => Promise<void>;
     onRefresh?: () => void;
 }
 
@@ -20,7 +21,7 @@ type PriorityFilter = 'ALL' | Priority;
 
 const EMS_PER_PAGE = 5;
 
-export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onUpdateTask, onDeleteTask, onRefresh }) => {
+export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onUpdateTask, onDeleteTask, onToggleTask, onRefresh }) => {
     const [isAdding, setIsAdding] = useState(false);
     const [newTaskTitle, setNewTaskTitle] = useState("");
     const [newTaskPriority, setNewTaskPriority] = useState<Priority>("MEDIUM");
@@ -110,17 +111,7 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onUpdateTa
 
         try {
             setTogglingTaskId(taskId);
-            const today = new Date().toISOString().split('T')[0];
-            await dailyStatusApi.updateDailyStatus({
-                taskId,
-                date: today,
-                isCompleted: !currentStatus
-            });
-            toast.success(currentStatus ? "Task unmarked" : "Task completed! 🎉");
-            onRefresh?.();
-        } catch (error) {
-            console.error(error);
-            toast.error("Failed to update task");
+            await onToggleTask?.(taskId, currentStatus);
         } finally {
             setTogglingTaskId(null);
         }

@@ -24,11 +24,11 @@ export const useDashboardData = (isLoggedIn: boolean) => {
     const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [selectedDaySummary, setSelectedDaySummary] = useState<DailySummary | null>(null);
 
-    const fetchDashboardData = useCallback(async () => {
+    const fetchDashboardData = useCallback(async (showLoading = true) => {
         if (!isLoggedIn) return;
 
         try {
-            setIsLoading(true);
+            if (showLoading) setIsLoading(true);
 
             const today = new Date().toISOString().split('T')[0];
             const sevenDaysAgo = new Date();
@@ -79,7 +79,7 @@ export const useDashboardData = (isLoggedIn: boolean) => {
             console.error("Failed to fetch dashboard data:", error);
             toast.error("Failed to load dashboard data");
         } finally {
-            setIsLoading(false);
+            if (showLoading) setIsLoading(false);
         }
     }, [isLoggedIn]);
 
@@ -144,6 +144,40 @@ export const useDashboardData = (isLoggedIn: boolean) => {
         } catch (error) {
             console.error(error);
             toast.error("Failed to delete task");
+        }
+    };
+
+    const toggleTask = async (taskId: string, currentStatus: boolean) => {
+        // Optimistically update tasks
+        setTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: !currentStatus } : t));
+
+        // Optimistically update stats
+        setStats(prev => ({
+            ...prev,
+            completedToday: prev.completedToday + (currentStatus ? -1 : 1),
+            pendingTasks: prev.pendingTasks + (currentStatus ? 1 : -1)
+        }));
+
+        toast.success(currentStatus ? "Task unmarked" : "Task completed! 🎉");
+
+        try {
+            const today = new Date().toISOString().split('T')[0];
+            await dailyStatusApi.updateDailyStatus({
+                taskId,
+                date: today,
+                isCompleted: !currentStatus
+            });
+            fetchDashboardData(false);
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to update task");
+            // Revert optimistic updates
+            setTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: currentStatus } : t));
+            setStats(prev => ({
+                ...prev,
+                completedToday: prev.completedToday + (currentStatus ? 1 : -1),
+                pendingTasks: prev.pendingTasks + (currentStatus ? -1 : 1)
+            }));
         }
     };
 
@@ -254,6 +288,7 @@ export const useDashboardData = (isLoggedIn: boolean) => {
         addTask,
         updateTask,
         deleteTask,
+        toggleTask,
         updateDailyStatus: updateSummary,
         selectedDate,
         setSelectedDate,

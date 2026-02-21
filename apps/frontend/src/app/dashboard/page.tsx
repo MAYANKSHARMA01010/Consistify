@@ -34,6 +34,7 @@ export default function DashboardPage() {
         addTask,
         updateTask,
         deleteTask,
+        toggleTask,
         updateDailyStatus,
         history,
         refetch,
@@ -133,6 +134,7 @@ export default function DashboardPage() {
                             onAddTask={addTask}
                             onUpdateTask={updateTask}
                             onDeleteTask={deleteTask}
+                            onToggleTask={toggleTask}
                             onRefresh={refetch}
                         />
                     </div>

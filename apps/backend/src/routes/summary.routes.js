@@ -1,4 +1,5 @@
 const express = require("express");
+const rateLimit = require("express-rate-limit");
 const {
     getTodaySummary,
     getSummaryByRange,
@@ -9,7 +10,13 @@ const { requireAuth } = require("../middlewares/auth.middleware");
 
 const summaryRouter = express.Router();
 
+const summaryRateLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+});
+
 summaryRouter.use(requireAuth);
+summaryRouter.use(summaryRateLimiter);
 
 summaryRouter.get("/today", getTodaySummary);
 summaryRouter.get("/range", getSummaryByRange);

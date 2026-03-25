@@ -1,4 +1,5 @@
 const express = require("express");
+const RateLimit = require("express-rate-limit");
 const {
     register,
     login,
@@ -17,12 +18,17 @@ const {
     requireRefreshAuth
 } = require("../middlewares/auth.middleware");
 
+const authLimiter = RateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs for auth routes
+});
+
 const authRouter = express.Router();
 
 authRouter.post("/register", register);
 authRouter.post("/login", login);
 authRouter.post("/logout", logout);
-authRouter.get("/me", requireAuth, me);
+authRouter.get("/me", authLimiter, requireAuth, me);
 
 authRouter.post("/refresh", requireRefreshAuth, refreshToken);
 

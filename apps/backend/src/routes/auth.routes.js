@@ -30,7 +30,7 @@ authRouter.post("/login", login);
 authRouter.post("/logout", logout);
 authRouter.get("/me", authLimiter, requireAuth, me);
 
-authRouter.post("/refresh", requireRefreshAuth, refreshToken);
+authRouter.post("/refresh", authLimiter, requireRefreshAuth, refreshToken);
 
 authRouter.get("/google", googleLogin);
 authRouter.get("/google/callback", googleCallback);

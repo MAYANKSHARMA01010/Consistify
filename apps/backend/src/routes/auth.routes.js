@@ -33,6 +33,6 @@ authRouter.get("/me", authLimiter, requireAuth, me);
 authRouter.post("/refresh", authLimiter, requireRefreshAuth, refreshToken);
 
 authRouter.get("/google", googleLogin);
-authRouter.get("/google/callback", googleCallback);
+authRouter.get("/google/callback", authLimiter, googleCallback);
 
 module.exports = authRouter;

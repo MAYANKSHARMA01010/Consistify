@@ -15,6 +15,14 @@ const dailyStatusLimiter = rateLimit({
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 200, // limit each IP to 200 auth requests per windowMs
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+dailyStatusRouter.use(authLimiter);
 dailyStatusRouter.use(requireAuth);
 dailyStatusRouter.use(dailyStatusLimiter);
 

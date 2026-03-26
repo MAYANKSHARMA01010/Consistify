@@ -8,6 +8,11 @@ updates:
     labels:
       - "dependencies"
       - "backend"
+    ignore:
+      - dependency-name: "prisma"
+        versions: [">= 7.0.0"]
+      - dependency-name: "@prisma/client"
+        versions: [">= 7.0.0"]
 
   # Frontend dependencies (apps/frontend)
   - package-ecosystem: "npm"

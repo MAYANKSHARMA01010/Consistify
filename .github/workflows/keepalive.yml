@@ -1,0 +1,11 @@
+name: Keepalive
+
+on:
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Keep CodeQL Actions scanner happy
+        run: echo "Because there are no other workflows, CodeQL throws an error trying to scan empty Actions. This file prevents that."

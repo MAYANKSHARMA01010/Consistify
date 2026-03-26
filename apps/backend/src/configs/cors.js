@@ -1,14 +1,14 @@
 const cors = require("cors");
 require("dotenv").config();
 
-const allowedOrigins = [
+const allowedOrigins = new Set([
     process.env.FRONTEND_LOCAL_URL,
     process.env.FRONTEND_SERVER_URL,
-];
+]);
 
 const corsOptions = {
     origin: function (origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
+        if (!origin || allowedOrigins.has(origin)) {
             callback(null, true);
         } 
         else {

@@ -4,7 +4,7 @@ const ApiError = require("../utils/ApiError");
 
 const normalizeDate = (dateString) => {
     const date = dateString ? new Date(dateString) : new Date();
-    if (isNaN(date.getTime())) {
+    if (Number.isNaN(date.getTime())) {
         throw new ApiError(400, "Invalid date format");
     }
     date.setUTCHours(0, 0, 0, 0);

@@ -253,13 +253,13 @@ const getSummaryByRange = async (req, res, next) => {
         }
 
         const startDate = new Date(start);
-        if (isNaN(startDate.getTime())) {
+        if (Number.isNaN(startDate.getTime())) {
             throw new ApiError(400, "Invalid start date");
         }
         startDate.setUTCHours(0, 0, 0, 0);
 
         const endDate = new Date(end);
-        if (isNaN(endDate.getTime())) {
+        if (Number.isNaN(endDate.getTime())) {
             throw new ApiError(400, "Invalid end date");
         }
         endDate.setUTCHours(23, 59, 59, 999);

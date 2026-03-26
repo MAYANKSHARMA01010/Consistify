@@ -75,7 +75,7 @@
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/MAYANKSHARMA01010/Consistify
 cd Consistify
 
 # Install backend dependencies
@@ -111,6 +111,7 @@ Visit `http://localhost:3000` to access the application!
 ## 🏗️ Tech Stack
 
 **Frontend:**
+
 - Next.js 16 (App Router)
 - React 19
 - TypeScript 5
@@ -118,6 +119,7 @@ Visit `http://localhost:3000` to access the application!
 - Axios
 
 **Backend:**
+
 - Express.js 5
 - Prisma ORM 6
 - PostgreSQL
@@ -130,16 +132,16 @@ Visit `http://localhost:3000` to access the application!
 
 ## 📚 Documentation
 
-| Document | Description |
-|----------|-------------|
-| [Architecture](./docs/ARCHITECTURE.md) | Tech stack, folder structure, design patterns |
-| [Setup Guide](./docs/SETUP.md) | Installation, configuration, troubleshooting |
-| [API Reference](./docs/API.md) | Complete API endpoint documentation |
-| [Database Schema](./docs/DATABASE.md) | Data models, relationships, migrations |
-| [Features](./docs/FEATURES.md) | Completed features and workflows |
-| [Roadmap](./docs/ROADMAP.md) | Future features and timeline |
-| [Development Guide](./docs/DEVELOPMENT.md) | How to implement new features |
-| [Known Issues](./docs/ISSUES.md) | Resolved issues and debugging tips |
+| Document                                | Description                                   |
+| --------------------------------------- | --------------------------------------------- |
+| [Architecture](./docs/ARCHITECTURE.md)     | Tech stack, folder structure, design patterns |
+| [Setup Guide](./docs/SETUP.md)             | Installation, configuration, troubleshooting  |
+| [API Reference](./docs/API.md)             | Complete API endpoint documentation           |
+| [Database Schema](./docs/DATABASE.md)      | Data models, relationships, migrations        |
+| [Features](./docs/FEATURES.md)             | Completed features and workflows              |
+| [Roadmap](./docs/ROADMAP.md)               | Future features and timeline                  |
+| [Development Guide](./docs/DEVELOPMENT.md) | How to implement new features                 |
+| [Known Issues](./docs/ISSUES.md)           | Resolved issues and debugging tips            |
 
 ---
 
@@ -213,6 +215,7 @@ Contributions are welcome! To contribute:
 5. Open a Pull Request
 
 Please ensure:
+
 - Code follows existing style conventions
 - All tests pass
 - Documentation is updated if needed

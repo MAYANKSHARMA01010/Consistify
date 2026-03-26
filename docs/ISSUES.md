@@ -81,6 +81,17 @@ pnpx prisma generate
 
 ---
 
+### 5. **Prisma 7.5.0 Connection URL Error**
+
+**Issue:** Render deployment failed with `Error code: P1012`.  
+**Cause:** Prisma 7.0+ deprecated the `url` property inside `schema.prisma`. Dependabot upgraded `@prisma/client` and `prisma` to `7.5.0` which broke the build.  
+**Solution:** Downgraded Prisma back to `~6.19.2`. Added an ignore rule in `.github/dependabot.yml` to prevent Dependabot from installing Prisma `7.x.x` updates until the codebase connection logic is refactored.
+
+**Status:** ✅ Resolved
+
+---
+
+
 ### 5. **Axios Proto Key Vulnerability (CVE)**
 
 **Issue:** Denial-of-service vulnerability in Axios  

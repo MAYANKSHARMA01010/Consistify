@@ -15,8 +15,8 @@ const summaryRateLimiter = rateLimit({
     max: 100, // limit each IP to 100 requests per windowMs
 });
 
-summaryRouter.use(requireAuth);
 summaryRouter.use(summaryRateLimiter);
+summaryRouter.use(requireAuth);
 
 summaryRouter.get("/today", getTodaySummary);
 summaryRouter.get("/range", getSummaryByRange);

@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import toast from "react-hot-toast";
 import { DashboardStats, Task, DailyStatusData, Mood, DailySummary } from "../types/dashboard";
 import { summaryApi, tasksApi, dailyStatusApi } from "../../../utils/api";
 import { Priority } from "../types/dashboard";
+import { trackEvent } from "@/components/analytics/GoogleAnalytics";
 
 export const useDashboardData = (isLoggedIn: boolean) => {
     const [stats, setStats] = useState<DashboardStats>({
@@ -23,6 +24,7 @@ export const useDashboardData = (isLoggedIn: boolean) => {
     const [isLoading, setIsLoading] = useState(true);
     const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [selectedDaySummary, setSelectedDaySummary] = useState<DailySummary | null>(null);
+    const lastTrackedStreakRef = useRef<number>(0);
 
     const fetchDashboardData = useCallback(async (showLoading = true) => {
         if (!isLoggedIn) return;
@@ -45,6 +47,14 @@ export const useDashboardData = (isLoggedIn: boolean) => {
             setStats(statsData);
             setTasks(tasksData);
             setDailyStatus(statusData);
+
+            if (statsData.streak > 0 && statsData.streak !== lastTrackedStreakRef.current) {
+                trackEvent("daily_streak", {
+                    streak_count: statsData.streak,
+                    max_streak: statsData.maxStreak,
+                });
+                lastTrackedStreakRef.current = statsData.streak;
+            }
 
 
 
@@ -95,6 +105,12 @@ export const useDashboardData = (isLoggedIn: boolean) => {
                 priority,
                 startDate: today
             });
+
+            trackEvent("task_created", {
+                task_name: title,
+                priority,
+            });
+
             toast.success("Task created!");
 
             const updatedTasks = await tasksApi.getTasks();
@@ -148,6 +164,8 @@ export const useDashboardData = (isLoggedIn: boolean) => {
     };
 
     const toggleTask = async (taskId: string, currentStatus: boolean) => {
+        const task = tasks.find((item) => item.id === taskId);
+
         // Optimistically update tasks
         setTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: !currentStatus } : t));
 
@@ -159,6 +177,12 @@ export const useDashboardData = (isLoggedIn: boolean) => {
         }));
 
         toast.success(currentStatus ? "Task unmarked" : "Task completed! 🎉");
+
+        if (!currentStatus) {
+            trackEvent("task_completed", {
+                task_name: task?.taskTitle || task?.title || "Unknown Task",
+            });
+        }
 
         try {
             const today = new Date().toISOString().split('T')[0];

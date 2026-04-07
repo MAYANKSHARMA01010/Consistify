@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { apiFetch } from "../utils/api";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { trackEvent } from "../components/analytics/GoogleAnalytics";
 
 type User = {
     id: string;
@@ -20,8 +21,8 @@ type AuthContextType = {
     loading: boolean;
     isLoggedIn: boolean;
     refreshUser: () => Promise<void>;
-    login: (data: any) => Promise<void>;
-    register: (data: any) => Promise<void>;
+    login: (data: { email: string; password: string }) => Promise<void>;
+    register: (data: { name: string; username: string; email: string; password: string }) => Promise<void>;
     logout: () => Promise<void>;
 };
 
@@ -43,17 +44,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const login = async (data: any) => {
+    const login = async (data: { email: string; password: string }) => {
         await apiFetch("/api/auth/login", {
             method: "POST",
             body: JSON.stringify(data),
             headers: { "Content-Type": "application/json" }
         });
+
+        trackEvent("login", {
+            method: "email_password",
+        });
+
         await refreshUser();
         router.push("/dashboard");
     };
 
-    const register = async (data: any) => {
+    const register = async (data: { name: string; username: string; email: string; password: string }) => {
         await apiFetch("/api/auth/register", {
             method: "POST",
             body: JSON.stringify(data),

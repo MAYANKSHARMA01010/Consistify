@@ -69,3 +69,28 @@ export interface WeeklySummaryData {
     avgCompletion: number;
     totalPoints: number;
 }
+
+export interface WeeklyReportDay {
+    date: string;
+    points: number;
+    consistency: number;
+    completedTasks: number;
+    totalTasks: number;
+    streak: number;
+    missedDay: boolean;
+}
+
+export interface WeeklyReport {
+    range: {
+        start: string;
+        end: string;
+    };
+    summary: {
+        totalPoints: number;
+        missedDays: number;
+        avgConsistency: number;
+        currentStreak: number;
+        maxStreakInWeek: number;
+    };
+    chart: WeeklyReportDay[];
+}

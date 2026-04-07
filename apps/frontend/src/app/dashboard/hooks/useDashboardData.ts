@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import toast from "react-hot-toast";
-import { DashboardStats, Task, DailyStatusData, Mood, DailySummary } from "../types/dashboard";
+import { DashboardStats, Task, DailyStatusData, Mood, DailySummary, WeeklyReport } from "../types/dashboard";
 import { summaryApi, tasksApi, dailyStatusApi } from "../../../utils/api";
 import { Priority } from "../types/dashboard";
 import { trackEvent } from "@/components/analytics/GoogleAnalytics";
@@ -21,6 +21,7 @@ export const useDashboardData = (isLoggedIn: boolean) => {
     const [dailyStatus, setDailyStatus] = useState<DailyStatusData | null>(null);
     const [tasks, setTasks] = useState<Task[]>([]);
     const [history, setHistory] = useState<DailySummary[]>([]);
+    const [weeklyReport, setWeeklyReport] = useState<WeeklyReport | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [selectedDaySummary, setSelectedDaySummary] = useState<DailySummary | null>(null);
@@ -37,16 +38,18 @@ export const useDashboardData = (isLoggedIn: boolean) => {
             sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
             const startDate = sevenDaysAgo.toISOString().split('T')[0];
 
-            const [statsData, tasksData, statusData, historyData] = await Promise.all([
+            const [statsData, tasksData, statusData, historyData, weeklyReportData] = await Promise.all([
                 summaryApi.getTodaySummary(),
                 tasksApi.getTasks(),
                 dailyStatusApi.getDailyStatus().catch(() => null),
-                summaryApi.getSummaryByRange(startDate, today).catch(() => [])
+                summaryApi.getSummaryByRange(startDate, today).catch(() => []),
+                summaryApi.getWeeklyReport().catch(() => null),
             ]);
 
             setStats(statsData);
             setTasks(tasksData);
             setDailyStatus(statusData);
+            setWeeklyReport(weeklyReportData);
 
             if (statsData.streak > 0 && statsData.streak !== lastTrackedStreakRef.current) {
                 trackEvent("daily_streak", {
@@ -316,6 +319,7 @@ export const useDashboardData = (isLoggedIn: boolean) => {
         updateDailyStatus: updateSummary,
         selectedDate,
         setSelectedDate,
-        selectedDaySummary
+        selectedDaySummary,
+        weeklyReport,
     };
 };

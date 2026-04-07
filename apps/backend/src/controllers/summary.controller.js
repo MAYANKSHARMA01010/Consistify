@@ -1,6 +1,26 @@
 const prisma = require("../configs/prisma");
 const ApiError = require("../utils/ApiError");
 
+const MISSED_DAY_PENALTY = 1;
+
+const getStartOfDayUTC = (dateInput) => {
+    const date = new Date(dateInput);
+    date.setUTCHours(0, 0, 0, 0);
+    return date;
+};
+
+const getEndOfDayUTC = (dateInput) => {
+    const date = new Date(dateInput);
+    date.setUTCHours(23, 59, 59, 999);
+    return date;
+};
+
+const getYesterdayUTC = (dateInput) => {
+    const yesterday = getStartOfDayUTC(dateInput);
+    yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+    return yesterday;
+};
+
 const calculateAndSaveSummary = async (userId, date) => {
     try {
         const summaryDate = new Date(date);
@@ -52,15 +72,15 @@ const calculateAndSaveSummary = async (userId, date) => {
 
         const totalTasks = statuses.length;
         const completedTasks = statuses.filter((s) => s.isCompleted).length;
-        const points = completedTasks;
+        const missedDay = totalTasks > 0 && completedTasks === 0;
+        const points = missedDay ? -MISSED_DAY_PENALTY : completedTasks;
 
         let consistency = 0;
         if (totalTasks > 0) {
             consistency = (completedTasks / totalTasks) * 100;
         }
 
-        const yesterday = new Date(summaryDate);
-        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterday = getYesterdayUTC(summaryDate);
 
         const previousSummary = await prisma.dailySummary.findUnique({
             where: {
@@ -75,18 +95,29 @@ const calculateAndSaveSummary = async (userId, date) => {
 
         let currentStreak = 0;
         if (completedTasks > 0) {
-            currentStreak = (previousSummary?.currentStreak || 0) + 1;
-        } else {
-            // Streak broken for this specific day record if 0 tasks done
-            // However, UI might show previous streak if today is just starting
-            currentStreak = 0;
+            const lastCompletedSummary = await prisma.dailySummary.findFirst({
+                where: {
+                    userId,
+                    date: { lt: summaryDate },
+                    completedTasks: { gt: 0 },
+                },
+                orderBy: { date: "desc" },
+            });
+
+            const lastCompletedDate = lastCompletedSummary ? getStartOfDayUTC(lastCompletedSummary.date) : null;
+            const yesterdayDate = getYesterdayUTC(summaryDate);
+
+            if (lastCompletedDate && lastCompletedDate.getTime() === yesterdayDate.getTime()) {
+                currentStreak = (lastCompletedSummary.currentStreak || 0) + 1;
+            } else {
+                currentStreak = 1;
+            }
         }
 
         // Calculate max streak by checking all-time best
         const bestPastSummary = await prisma.dailySummary.findFirst({
             where: {
                 userId,
-                // Exclude today to avoid self-reference issues if re-calculating
                 date: { lt: summaryDate }
             },
             orderBy: {
@@ -212,9 +243,7 @@ const getTodaySummary = async (req, res, next) => {
         // Calculate display streak
         let displayStreak = summary?.currentStreak || 0;
         if (completedToday === 0) {
-            // If no tasks done today yet, show yesterday's streak (pending)
-            const yesterday = new Date(today);
-            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterday = getYesterdayUTC(today);
             const previousSummary = await prisma.dailySummary.findUnique({
                 where: {
                     userId_date: {
@@ -238,6 +267,72 @@ const getTodaySummary = async (req, res, next) => {
             mood: summary?.mood || null,
             notes: summary?.notes || null,
             totalTasks: summary?.totalTasks || 0,
+            missedDayPenalty: MISSED_DAY_PENALTY,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getWeeklyReport = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const end = getEndOfDayUTC(new Date());
+        const start = getStartOfDayUTC(new Date());
+        start.setUTCDate(start.getUTCDate() - 6);
+
+        const summaries = await prisma.dailySummary.findMany({
+            where: {
+                userId,
+                date: {
+                    gte: start,
+                    lte: end,
+                },
+            },
+            orderBy: {
+                date: "asc",
+            },
+        });
+
+        const chart = [];
+        for (let i = 0; i < 7; i++) {
+            const day = getStartOfDayUTC(start);
+            day.setUTCDate(start.getUTCDate() + i);
+            const iso = day.toISOString().split("T")[0];
+
+            const found = summaries.find((summary) => summary.date.toISOString().split("T")[0] === iso);
+            chart.push({
+                date: iso,
+                points: found?.points || 0,
+                consistency: found?.consistency || 0,
+                completedTasks: found?.completedTasks || 0,
+                totalTasks: found?.totalTasks || 0,
+                streak: found?.currentStreak || 0,
+                missedDay: Boolean(found && found.totalTasks > 0 && found.completedTasks === 0),
+            });
+        }
+
+        const validConsistencyDays = chart.filter((day) => day.totalTasks > 0);
+        const avgConsistency = validConsistencyDays.length
+            ? validConsistencyDays.reduce((acc, day) => acc + day.consistency, 0) / validConsistencyDays.length
+            : 0;
+
+        const totalPoints = chart.reduce((acc, day) => acc + day.points, 0);
+        const missedDays = chart.filter((day) => day.missedDay).length;
+
+        return res.json({
+            range: {
+                start: start.toISOString().split("T")[0],
+                end: end.toISOString().split("T")[0],
+            },
+            summary: {
+                totalPoints,
+                missedDays,
+                avgConsistency: Number(avgConsistency.toFixed(2)),
+                currentStreak: chart[chart.length - 1]?.streak || 0,
+                maxStreakInWeek: Math.max(...chart.map((d) => d.streak), 0),
+            },
+            chart,
         });
     } catch (error) {
         next(error);
@@ -365,6 +460,7 @@ const getSummaryDetails = async (req, res, next) => {
 module.exports = {
     calculateAndSaveSummary,
     getTodaySummary,
+    getWeeklyReport,
     getSummaryByRange,
     updateSummary,
     getSummaryDetails,

@@ -9,6 +9,8 @@ import { StatsCard } from "./components/StatsCard";
 import { DailyStatus } from "./components/DailyStatus";
 import { TaskList } from "./components/TaskList";
 import { HistoryRail } from "./components/HistoryRail";
+import { WeeklyProgressChart } from "./components/WeeklyProgressChart";
+import { StreakBadge } from "./components/StreakBadge";
 
 import { SplashScreen } from "@/components/ui/SplashScreen";
 import { useDashboardData } from "./hooks/useDashboardData";
@@ -39,7 +41,8 @@ export default function DashboardPage() {
         history,
         refetch,
         selectedDate,
-        selectedDaySummary
+        selectedDaySummary,
+        weeklyReport,
     } = useDashboardData(!!isLoggedIn);
 
 
@@ -63,12 +66,19 @@ export default function DashboardPage() {
             <main className="max-w-7xl mx-auto space-y-8">
                 <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                     <div>
-                        <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-purple-200 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                        <h1 className="text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-white via-cyan-100 to-purple-200 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
                             Hello, {user?.name?.split(' ')[0] || "User"}
                         </h1>
                         <p className="text-zinc-400 mt-2 italic font-light">
                             "{quote}"
                         </p>
+                        <div className="mt-4">
+                            <StreakBadge
+                                streak={stats.streak}
+                                maxStreak={stats.maxStreak}
+                                missedDays={weeklyReport?.summary.missedDays || 0}
+                            />
+                        </div>
                     </div>
                     <div className="text-right hidden md:block">
                         <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Today's Date</p>
@@ -114,10 +124,10 @@ export default function DashboardPage() {
                                 onUpdate={updateDailyStatus}
                             />
                         ) : (
-                            <GlassCard className="p-8 h-full flex flex-col items-center justify-center text-center min-h-[300px]">
+                            <GlassCard className="p-8 h-full flex flex-col items-center justify-center text-center min-h-75">
                                 <span className="text-5xl mb-6 opacity-30 grayscale">📝</span>
                                 <h3 className="text-xl font-bold text-white mb-2">No Focus Set</h3>
-                                <p className="text-zinc-500 text-sm mb-6 max-w-[200px]">Define your main goal and energy level for today to start tracking.</p>
+                                <p className="text-zinc-500 text-sm mb-6 max-w-50">Define your main goal and energy level for today to start tracking.</p>
                                 <button
                                     onClick={() => updateDailyStatus({ focus: "Today's Main Goal", mood: "NORMAL" })}
                                     className="text-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-widest text-xs border-b border-cyan-500/30 hover:border-cyan-400 transition-all"
@@ -142,6 +152,10 @@ export default function DashboardPage() {
 
                 <section>
                     <HistoryRail history={history} />
+                </section>
+
+                <section>
+                    <WeeklyProgressChart report={weeklyReport} />
                 </section>
 
             </main>

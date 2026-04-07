@@ -2,6 +2,7 @@ const express = require("express");
 const rateLimit = require("express-rate-limit");
 const {
     getTodaySummary,
+    getWeeklyReport,
     getSummaryByRange,
     updateSummary,
     getSummaryDetails,
@@ -19,6 +20,7 @@ summaryRouter.use(summaryRateLimiter);
 summaryRouter.use(requireAuth);
 
 summaryRouter.get("/today", getTodaySummary);
+summaryRouter.get("/weekly-report", getWeeklyReport);
 summaryRouter.get("/range", getSummaryByRange);
 summaryRouter.get("/:id/details", getSummaryDetails);
 summaryRouter.patch("/", updateSummary);

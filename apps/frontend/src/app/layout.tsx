@@ -22,9 +22,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Consistify - Build Consistency That Lasts",
   description: "Track tasks, build streaks, review weekly progress, and stay consistent with an intelligent habit system.",
-  verification: {
-    google: "YrcRM1P9DxnjzH9EU9MEZzvXIg_aUbaAFyJHvHEfe5Y",
-  },
 };
 
 export default function RootLayout({
@@ -34,6 +31,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <meta
+          name="google-site-verification"
+          content="YrcRM1P9DxnjzH9EU9MEZzvXIg_aUbaAFyJHvHEfe5Y"
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning

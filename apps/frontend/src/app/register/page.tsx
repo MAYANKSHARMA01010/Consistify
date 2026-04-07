@@ -61,7 +61,7 @@ export default function RegisterPage() {
             });
             toast.success("Account created. Verify your email before signing in.");
             router.push("/login");
-        } catch (err: any) {
+        } catch (err: unknown) {
             toast.error(getErrorMessage(err));
         } finally {
             setIsSubmitting(false);

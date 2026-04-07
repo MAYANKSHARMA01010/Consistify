@@ -1,42 +1,72 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { DashboardStats, Task, DailyStatusData, Mood, DailySummary, WeeklyReport } from "../types/dashboard";
 import { summaryApi, tasksApi, dailyStatusApi } from "../../../utils/api";
 import { Priority } from "../types/dashboard";
 import { trackEvent } from "@/components/analytics/GoogleAnalytics";
 
-export const useDashboardData = (isLoggedIn: boolean) => {
-    const [stats, setStats] = useState<DashboardStats>({
-        completedToday: 0,
-        streak: 0,
-        maxStreak: 0,
-        pendingTasks: 0,
-        pointsToday: 0,
-        pointsLastWeek: 0,
-        consistency: 0,
-        focus: null,
-        mood: null
-    });
+const DASHBOARD_QUERY_KEY = ["dashboard-data"];
+const EMPTY_HISTORY: DailySummary[] = [];
 
-    const [dailyStatus, setDailyStatus] = useState<DailyStatusData | null>(null);
-    const [tasks, setTasks] = useState<Task[]>([]);
-    const [history, setHistory] = useState<DailySummary[]>([]);
-    const [weeklyReport, setWeeklyReport] = useState<WeeklyReport | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
-    const [selectedDaySummary, setSelectedDaySummary] = useState<DailySummary | null>(null);
+const EMPTY_STATS: DashboardStats = {
+    completedToday: 0,
+    streak: 0,
+    maxStreak: 0,
+    pendingTasks: 0,
+    pointsToday: 0,
+    pointsLastWeek: 0,
+    consistency: 0,
+    focus: null,
+    mood: null,
+};
+
+const buildFilledHistory = (historyData: DailySummary[]) => {
+    const filledHistory: DailySummary[] = [];
+
+    for (let i = 0; i < 7; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split("T")[0];
+
+        const existing = historyData.find((h) => h.date.startsWith(dateStr));
+        if (existing) {
+            filledHistory.push(existing);
+            continue;
+        }
+
+        filledHistory.push({
+            id: `empty-${dateStr}`,
+            date: dateStr,
+            completedTasks: 0,
+            totalTasks: 0,
+            points: 0,
+            cumulativePoints: 0,
+            consistency: 0,
+            focus: null,
+            mood: null,
+            notes: null,
+            currentStreak: 0,
+            maxStreak: 0,
+        } as DailySummary);
+    }
+
+    return filledHistory;
+};
+
+export const useDashboardData = (isLoggedIn: boolean) => {
+    const queryClient = useQueryClient();
+    const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split("T")[0]);
     const lastTrackedStreakRef = useRef<number>(0);
 
-    const fetchDashboardData = useCallback(async (showLoading = true) => {
-        if (!isLoggedIn) return;
-
-        try {
-            if (showLoading) setIsLoading(true);
-
-            const today = new Date().toISOString().split('T')[0];
+    const dashboardQuery = useQuery({
+        queryKey: DASHBOARD_QUERY_KEY,
+        enabled: isLoggedIn,
+        queryFn: async () => {
+            const today = new Date().toISOString().split("T")[0];
             const sevenDaysAgo = new Date();
             sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-            const startDate = sevenDaysAgo.toISOString().split('T')[0];
+            const startDate = sevenDaysAgo.toISOString().split("T")[0];
 
             const [statsData, tasksData, statusData, historyData, weeklyReportData] = await Promise.all([
                 summaryApi.getTodaySummary(),
@@ -46,179 +76,45 @@ export const useDashboardData = (isLoggedIn: boolean) => {
                 summaryApi.getWeeklyReport().catch(() => null),
             ]);
 
-            setStats(statsData);
-            setTasks(tasksData);
-            setDailyStatus(statusData);
-            setWeeklyReport(weeklyReportData);
+            return {
+                stats: statsData,
+                tasks: tasksData,
+                dailyStatus: statusData,
+                history: buildFilledHistory(historyData),
+                weeklyReport: weeklyReportData as WeeklyReport | null,
+            };
+        },
+    });
 
-            if (statsData.streak > 0 && statsData.streak !== lastTrackedStreakRef.current) {
-                trackEvent("daily_streak", {
-                    streak_count: statsData.streak,
-                    max_streak: statsData.maxStreak,
-                });
-                lastTrackedStreakRef.current = statsData.streak;
-            }
-
-
-
-            const filledHistory: DailySummary[] = [];
-            for (let i = 0; i < 7; i++) {
-                const d = new Date();
-                d.setDate(d.getDate() - i);
-                const dateStr = d.toISOString().split('T')[0];
-
-                const existing = historyData.find((h: DailySummary) => h.date.startsWith(dateStr));
-                if (existing) {
-                    filledHistory.push(existing);
-                } else {
-                    filledHistory.push({
-                        id: `empty-${dateStr}`,
-                        date: dateStr,
-                        completedTasks: 0,
-                        totalTasks: 0,
-                        points: 0,
-                        cumulativePoints: 0,
-                        consistency: 0,
-                        focus: null,
-                        mood: null,
-                        notes: null,
-                        currentStreak: 0,
-                        maxStreak: 0,
-                    } as DailySummary);
-                }
-            }
-            setHistory(filledHistory);
-        } catch (error) {
-            console.error("Failed to fetch dashboard data:", error);
-            toast.error("Failed to load dashboard data");
-        } finally {
-            if (showLoading) setIsLoading(false);
-        }
-    }, [isLoggedIn]);
-
-    useEffect(() => {
-        fetchDashboardData();
-    }, [fetchDashboardData]);
-
-    const addTask = async (title: string, priority: Priority = "MEDIUM") => {
-        try {
-            const today = new Date().toISOString().split('T')[0];
-            await tasksApi.createTask({
-                title,
-                priority,
-                startDate: today
-            });
-
-            trackEvent("task_created", {
-                task_name: title,
-                priority,
-            });
-
-            toast.success("Task created!");
-
-            const updatedTasks = await tasksApi.getTasks();
-            setTasks(updatedTasks);
-
-            summaryApi.getTodaySummary().then(setStats);
-        } catch (error) {
-            console.error(error);
-            toast.error("Failed to create task");
-        }
-    };
-
-    const updateTask = async (id: string, data: Partial<Task>) => {
-        try {
-            await tasksApi.updateTask(id, data);
-            toast.success("Task updated!");
-
-
-
-            const updatedTasks = await tasksApi.getTasks();
-            setTasks(updatedTasks);
-
-
-
-            summaryApi.getTodaySummary().then(setStats);
-        } catch (error) {
-            console.error(error);
-            toast.error("Failed to update task");
-        }
-    };
-
-    const deleteTask = async (id: string) => {
-        if (!window.confirm("Are you sure you want to delete this task?")) return;
-
-        try {
-            await tasksApi.deleteTask(id);
-            toast.success("Task deleted");
-
-
-
-            const updatedTasks = await tasksApi.getTasks();
-            setTasks(updatedTasks);
-
-
-
-            summaryApi.getTodaySummary().then(setStats);
-        } catch (error) {
-            console.error(error);
-            toast.error("Failed to delete task");
-        }
-    };
-
-    const toggleTask = async (taskId: string, currentStatus: boolean) => {
-        const task = tasks.find((item) => item.id === taskId);
-
-        // Optimistically update tasks
-        setTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: !currentStatus } : t));
-
-        // Optimistically update stats
-        setStats(prev => ({
-            ...prev,
-            completedToday: prev.completedToday + (currentStatus ? -1 : 1),
-            pendingTasks: prev.pendingTasks + (currentStatus ? 1 : -1)
-        }));
-
-        toast.success(currentStatus ? "Task unmarked" : "Task completed! 🎉");
-
-        if (!currentStatus) {
-            trackEvent("task_completed", {
-                task_name: task?.taskTitle || task?.title || "Unknown Task",
-            });
-        }
-
-        try {
-            const today = new Date().toISOString().split('T')[0];
-            await dailyStatusApi.updateDailyStatus({
-                taskId,
-                date: today,
-                isCompleted: !currentStatus
-            });
-            fetchDashboardData(false);
-        } catch (error) {
-            console.error(error);
-            toast.error("Failed to update task");
-            // Revert optimistic updates
-            setTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: currentStatus } : t));
-            setStats(prev => ({
-                ...prev,
-                completedToday: prev.completedToday + (currentStatus ? 1 : -1),
-                pendingTasks: prev.pendingTasks + (currentStatus ? -1 : 1)
-            }));
-        }
-    };
+    const stats = dashboardQuery.data?.stats || EMPTY_STATS;
+    const tasks = dashboardQuery.data?.tasks || [];
+    const dailyStatus = (dashboardQuery.data?.dailyStatus || null) as DailyStatusData | null;
+    const history = dashboardQuery.data?.history || EMPTY_HISTORY;
+    const weeklyReport = dashboardQuery.data?.weeklyReport || null;
 
     const isToday = (date: string) => {
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split("T")[0];
         return date === today;
     };
 
-    useEffect(() => {
+    const selectedFromHistory = useMemo(
+        () => history.find((h) => h.date.split("T")[0] === selectedDate) || null,
+        [history, selectedDate]
+    );
+
+    const selectedDateQuery = useQuery({
+        queryKey: ["summary-selected-date", selectedDate],
+        enabled: isLoggedIn && !isToday(selectedDate) && !selectedFromHistory,
+        queryFn: async () => {
+            const res = await summaryApi.getSummaryByRange(selectedDate, selectedDate);
+            return res[0] || null;
+        },
+    });
+
+    const selectedDaySummary = useMemo(() => {
         if (isToday(selectedDate)) {
-
-
-            const summary: DailySummary = {
-                id: 'today',
+            return {
+                id: "today",
                 date: selectedDate,
                 completedTasks: stats.completedToday,
                 totalTasks: stats.totalTasks || 0,
@@ -229,80 +125,138 @@ export const useDashboardData = (isLoggedIn: boolean) => {
                 mood: stats.mood,
                 notes: stats.notes,
                 tasks: [],
-            };
-            setSelectedDaySummary(summary);
-        } else {
-
-
-            const inHistory = history.find(h => h.date.split('T')[0] === selectedDate);
-            if (inHistory) {
-                setSelectedDaySummary(inHistory);
-            } else {
-
-
-                summaryApi.getSummaryByRange(selectedDate, selectedDate)
-                    .then(res => {
-                        if (res && res.length > 0) {
-                            setSelectedDaySummary(res[0]);
-                        } else {
-                            setSelectedDaySummary({
-                                id: 'temp',
-                                date: selectedDate,
-                                completedTasks: 0,
-                                totalTasks: 0,
-                                points: 0,
-                                cumulativePoints: 0,
-                                consistency: 0,
-                                focus: null,
-                                mood: null,
-                                notes: null,
-                            });
-                        }
-                    })
-                    .catch(() => setSelectedDaySummary(null));
-            }
+            } as DailySummary;
         }
-    }, [selectedDate, stats, history]);
 
+        if (selectedFromHistory) {
+            return selectedFromHistory;
+        }
 
-    const updateSummary = async (data: { focus?: string; mood?: Mood; notes?: string }) => {
-        try {
-            const updated = await summaryApi.updateSummary({ ...data, date: selectedDate });
+        if (selectedDateQuery.data) {
+            return selectedDateQuery.data;
+        }
+
+        return {
+            id: "temp",
+            date: selectedDate,
+            completedTasks: 0,
+            totalTasks: 0,
+            points: 0,
+            cumulativePoints: 0,
+            consistency: 0,
+            focus: null,
+            mood: null,
+            notes: null,
+        } as DailySummary;
+    }, [selectedDate, stats, selectedFromHistory, selectedDateQuery.data]);
+
+    useEffect(() => {
+        if (stats.streak > 0 && stats.streak !== lastTrackedStreakRef.current) {
+            trackEvent("daily_streak", {
+                streak_count: stats.streak,
+                max_streak: stats.maxStreak,
+            });
+            lastTrackedStreakRef.current = stats.streak;
+        }
+    }, [stats.streak, stats.maxStreak]);
+
+    const refetchDashboard = async () => {
+        await queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY });
+    };
+
+    const addTaskMutation = useMutation({
+        mutationFn: async ({ title, priority }: { title: string; priority: Priority }) => {
+            const today = new Date().toISOString().split("T")[0];
+            await tasksApi.createTask({ title, priority, startDate: today });
+            trackEvent("task_created", { task_name: title, priority });
+        },
+        onSuccess: async () => {
+            toast.success("Task created!");
+            await refetchDashboard();
+        },
+        onError: () => {
+            toast.error("Failed to create task");
+        },
+    });
+
+    const updateTaskMutation = useMutation({
+        mutationFn: ({ id, data }: { id: string; data: Partial<Task> }) => tasksApi.updateTask(id, data),
+        onSuccess: async () => {
+            toast.success("Task updated!");
+            await refetchDashboard();
+        },
+        onError: () => {
+            toast.error("Failed to update task");
+        },
+    });
+
+    const deleteTaskMutation = useMutation({
+        mutationFn: (id: string) => tasksApi.deleteTask(id),
+        onSuccess: async () => {
+            toast.success("Task deleted");
+            await refetchDashboard();
+        },
+        onError: () => {
+            toast.error("Failed to delete task");
+        },
+    });
+
+    const toggleTaskMutation = useMutation({
+        mutationFn: async ({ taskId, currentStatus }: { taskId: string; currentStatus: boolean }) => {
+            const today = new Date().toISOString().split("T")[0];
+            await dailyStatusApi.updateDailyStatus({
+                taskId,
+                date: today,
+                isCompleted: !currentStatus,
+            });
+        },
+        onSuccess: async (_, variables) => {
+            if (!variables.currentStatus) {
+                const task = tasks.find((item) => item.id === variables.taskId);
+                trackEvent("task_completed", {
+                    task_name: task?.taskTitle || task?.title || "Unknown Task",
+                });
+            }
+            toast.success(variables.currentStatus ? "Task unmarked" : "Task completed! 🎉");
+            await refetchDashboard();
+        },
+        onError: () => {
+            toast.error("Failed to update task");
+        },
+    });
+
+    const updateSummaryMutation = useMutation({
+        mutationFn: (data: { focus?: string; mood?: Mood; notes?: string; date?: string }) => summaryApi.updateSummary(data),
+        onSuccess: async () => {
             toast.success("Status updated!");
-
-
-
-            if (isToday(selectedDate)) {
-                await fetchDashboardData();
-            } else {
-
-
-                const today = new Date().toISOString().split('T')[0];
-                const sevenDaysAgo = new Date();
-                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-                const startDate = sevenDaysAgo.toISOString().split('T')[0];
-                const historyData = await summaryApi.getSummaryByRange(startDate, today).catch(() => []);
-                setHistory([...historyData].reverse());
-
-
-
-                setSelectedDaySummary(updated);
-            }
-        } catch (error) {
-            console.error(error);
+            await refetchDashboard();
+        },
+        onError: () => {
             toast.error("Failed to update status");
+        },
+    });
+
+    const addTask = async (title: string, priority: Priority = "MEDIUM") => {
+        await addTaskMutation.mutateAsync({ title, priority });
+    };
+
+    const updateTask = async (id: string, data: Partial<Task>) => {
+        await updateTaskMutation.mutateAsync({ id, data });
+    };
+
+    const deleteTask = async (id: string) => {
+        if (!window.confirm("Are you sure you want to delete this task?")) {
+            return;
         }
+        await deleteTaskMutation.mutateAsync(id);
+    };
+
+    const toggleTask = async (taskId: string, currentStatus: boolean) => {
+        await toggleTaskMutation.mutateAsync({ taskId, currentStatus });
     };
 
     const updateDailyStatus = async (data: { focus?: string; mood?: Mood; notes?: string }) => {
-        try {
-            await summaryApi.updateSummary(data);
-            toast.success("Status updated!");
-            await fetchDashboardData();
-        } catch (error) {
-            console.error(error);
-            toast.error("Failed to update status");
-        }
+        await updateSummaryMutation.mutateAsync({ ...data, date: selectedDate });
     };
 
     return {
@@ -310,13 +264,13 @@ export const useDashboardData = (isLoggedIn: boolean) => {
         dailyStatus,
         tasks,
         history,
-        isLoading,
-        refetch: fetchDashboardData,
+        isLoading: dashboardQuery.isLoading,
+        refetch: refetchDashboard,
         addTask,
         updateTask,
         deleteTask,
         toggleTask,
-        updateDailyStatus: updateSummary,
+        updateDailyStatus,
         selectedDate,
         setSelectedDate,
         selectedDaySummary,

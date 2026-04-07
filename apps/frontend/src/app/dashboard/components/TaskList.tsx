@@ -1,7 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { Task, Priority } from '../types/dashboard';
-import { dailyStatusApi } from '../../../utils/api';
-import toast from 'react-hot-toast';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { NeonButton } from '@/components/ui/NeonButton';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,7 +11,6 @@ interface TaskListProps {
     onUpdateTask?: (id: string, data: Partial<Task>) => Promise<void>;
     onDeleteTask?: (id: string) => Promise<void>;
     onToggleTask?: (id: string, completed: boolean) => Promise<void>;
-    onRefresh?: () => void;
 }
 
 type StatusFilter = 'ALL' | 'COMPLETED' | 'PENDING';
@@ -21,7 +18,7 @@ type PriorityFilter = 'ALL' | Priority;
 
 const EMS_PER_PAGE = 5;
 
-export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onUpdateTask, onDeleteTask, onToggleTask, onRefresh }) => {
+export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onUpdateTask, onDeleteTask, onToggleTask }) => {
     const [isAdding, setIsAdding] = useState(false);
     const [newTaskTitle, setNewTaskTitle] = useState("");
     const [newTaskPriority, setNewTaskPriority] = useState<Priority>("MEDIUM");
@@ -163,11 +160,11 @@ export const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onUpdateTa
     };
 
     return (
-        <GlassCard className="h-[600px] overflow-hidden p-0">
+        <GlassCard className="h-150 overflow-hidden p-0">
             <div className="flex flex-col h-full">
                 <div className="p-4 border-b border-white/5 flex flex-col gap-4 bg-white/5 backdrop-blur-sm">
                     <div className="flex justify-between items-center">
-                        <h3 className="font-bold text-white tracking-wide">Today's Tasks</h3>
+                        <h3 className="font-bold text-white tracking-wide">Today&apos;s Tasks</h3>
                         <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
                             <span className="bg-green-500/10 text-green-400 px-2 py-1 rounded-md border border-green-500/20">
                                 {completedCount} Done

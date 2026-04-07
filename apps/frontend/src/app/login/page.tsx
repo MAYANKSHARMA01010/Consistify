@@ -46,7 +46,7 @@ export default function LoginPage() {
         try {
             await login({ email, password });
             router.push("/dashboard");
-        } catch (err: any) {
+        } catch (err: unknown) {
             toast.error(getErrorMessage(err));
         } finally {
             setIsSubmitting(false);
@@ -76,7 +76,7 @@ export default function LoginPage() {
 
             await authApi.requestEmailVerification(email);
             toast.success("If your account exists, a verification link has been sent");
-        } catch (err: any) {
+        } catch (err: unknown) {
             toast.error(getErrorMessage(err));
         } finally {
             setIsResendingVerification(false);

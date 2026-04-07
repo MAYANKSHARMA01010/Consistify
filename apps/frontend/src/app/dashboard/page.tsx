@@ -3,14 +3,15 @@
 import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import dynamic from "next/dynamic";
 import toast from "react-hot-toast";
 
-import { StatsCard } from "./components/StatsCard";
-import { DailyStatus } from "./components/DailyStatus";
-import { TaskList } from "./components/TaskList";
-import { HistoryRail } from "./components/HistoryRail";
-import { WeeklyProgressChart } from "./components/WeeklyProgressChart";
-import { StreakBadge } from "./components/StreakBadge";
+const StatsCard = dynamic(() => import("./components/StatsCard").then((module) => module.StatsCard));
+const DailyStatus = dynamic(() => import("./components/DailyStatus").then((module) => module.DailyStatus));
+const TaskList = dynamic(() => import("./components/TaskList").then((module) => module.TaskList));
+const HistoryRail = dynamic(() => import("./components/HistoryRail").then((module) => module.HistoryRail));
+const WeeklyProgressChart = dynamic(() => import("./components/WeeklyProgressChart").then((module) => module.WeeklyProgressChart));
+const StreakBadge = dynamic(() => import("./components/StreakBadge").then((module) => module.StreakBadge));
 
 import { SplashScreen } from "@/components/ui/SplashScreen";
 import { useDashboardData } from "./hooks/useDashboardData";
@@ -31,7 +32,6 @@ export default function DashboardPage() {
     const {
         stats,
         tasks,
-        dailyStatus,
         isLoading: dataLoading,
         addTask,
         updateTask,
@@ -39,7 +39,6 @@ export default function DashboardPage() {
         toggleTask,
         updateDailyStatus,
         history,
-        refetch,
         selectedDate,
         selectedDaySummary,
         weeklyReport,
@@ -70,7 +69,7 @@ export default function DashboardPage() {
                             Hello, {user?.name?.split(' ')[0] || "User"}
                         </h1>
                         <p className="text-zinc-400 mt-2 italic font-light">
-                            "{quote}"
+                            &quot;{quote}&quot;
                         </p>
                         <div className="mt-4">
                             <StreakBadge
@@ -81,7 +80,7 @@ export default function DashboardPage() {
                         </div>
                     </div>
                     <div className="text-right hidden md:block">
-                        <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Today's Date</p>
+                        <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Today&apos;s Date</p>
                         <p className="text-xl font-mono text-cyan-400">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
                     </div>
                 </header>
@@ -129,7 +128,7 @@ export default function DashboardPage() {
                                 <h3 className="text-xl font-bold text-white mb-2">No Focus Set</h3>
                                 <p className="text-zinc-500 text-sm mb-6 max-w-50">Define your main goal and energy level for today to start tracking.</p>
                                 <button
-                                    onClick={() => updateDailyStatus({ focus: "Today's Main Goal", mood: "NORMAL" })}
+                                    onClick={() => updateDailyStatus({ focus: "Today&apos;s Main Goal", mood: "NORMAL" })}
                                     className="text-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-widest text-xs border-b border-cyan-500/30 hover:border-cyan-400 transition-all"
                                 >
                                     Set Default Focus
@@ -145,7 +144,6 @@ export default function DashboardPage() {
                             onUpdateTask={updateTask}
                             onDeleteTask={deleteTask}
                             onToggleTask={toggleTask}
-                            onRefresh={refetch}
                         />
                     </div>
                 </section>

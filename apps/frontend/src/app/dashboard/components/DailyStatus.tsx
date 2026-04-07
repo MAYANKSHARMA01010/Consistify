@@ -233,7 +233,7 @@ export const DailyStatus: React.FC<DailyStatusProps> = ({ date, focus, mood, not
             <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-3">
                     <span className="text-[10px] font-bold px-2 py-1 bg-cyan-500/10 text-cyan-400 rounded-md border border-cyan-500/20 uppercase tracking-widest">
-                        Today's Status
+                        Today&apos;s Status
                     </span>
                     <span className="text-zinc-500 text-xs font-mono">{new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                 </div>

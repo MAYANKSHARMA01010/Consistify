@@ -18,9 +18,9 @@ export const api = axios.create({
 
 export class ApiClientError extends Error {
     status?: number;
-    data?: any;
+    data?: unknown;
 
-    constructor(message: string, status?: number, data?: any) {
+    constructor(message: string, status?: number, data?: unknown) {
         super(message);
         this.name = "ApiClientError";
         this.status = status;
@@ -67,8 +67,20 @@ api.interceptors.response.use(
 interface ApiRequestOptions {
     method?: string;
     headers?: Record<string, string>;
-    body?: any;
+    body?: unknown;
 }
+
+type AuthRegisterPayload = {
+    name: string;
+    username: string;
+    email: string;
+    password: string;
+};
+
+type AuthLoginPayload = {
+    email: string;
+    password: string;
+};
 
 export const apiFetch = async <T>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> => {
     const { method = "GET", headers = {}, body } = options;
@@ -93,10 +105,10 @@ export const apiFetch = async <T>(endpoint: string, options: ApiRequestOptions =
 };
 
 export const authApi = {
-    register: (data: any) => apiFetch<any>("/api/auth/register", { method: "POST", body: data }),
-    login: (data: any) => apiFetch<any>("/api/auth/login", { method: "POST", body: data }),
+    register: (data: AuthRegisterPayload) => apiFetch<{ success: boolean; message: string }>("/api/auth/register", { method: "POST", body: data }),
+    login: (data: AuthLoginPayload) => apiFetch<{ success: boolean; message: string }>("/api/auth/login", { method: "POST", body: data }),
     logout: () => apiFetch<void>("/api/auth/logout", { method: "POST" }),
-    getMe: () => apiFetch<any>("/api/auth/me"),
+    getMe: () => apiFetch<unknown>("/api/auth/me"),
     refreshToken: () => apiFetch<void>("/api/auth/refresh", { method: "POST" }),
     requestEmailVerification: (email: string) =>
         apiFetch<{ success: boolean; message: string; verifyToken?: string }>("/api/auth/verify-email/request", {
@@ -144,7 +156,7 @@ export const summaryApi = {
         apiFetch<DailyTaskStatusSnapshot[]>(`/api/summary/${id}/details`),
 };
 
-export const getErrorMessage = (error: any): string => {
+export const getErrorMessage = (error: unknown): string => {
     if (error instanceof ApiClientError) {
         return error.message;
     }

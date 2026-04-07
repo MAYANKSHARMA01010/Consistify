@@ -319,6 +319,11 @@ const getWeeklyReport = async (req, res, next) => {
 
         const totalPoints = chart.reduce((acc, day) => acc + day.points, 0);
         const missedDays = chart.filter((day) => day.missedDay).length;
+        const totalCompletedTasks = chart.reduce((acc, day) => acc + day.completedTasks, 0);
+        const totalPlannedTasks = chart.reduce((acc, day) => acc + day.totalTasks, 0);
+        const completionRate = totalPlannedTasks > 0 ? (totalCompletedTasks / totalPlannedTasks) * 100 : 0;
+        const productivityScoreRaw = (avgConsistency * 0.6) + (completionRate * 0.4) - (missedDays * 10);
+        const productivityScore = Math.max(0, Math.min(100, Number(productivityScoreRaw.toFixed(2))));
 
         return res.json({
             range: {
@@ -331,6 +336,7 @@ const getWeeklyReport = async (req, res, next) => {
                 avgConsistency: Number(avgConsistency.toFixed(2)),
                 currentStreak: chart[chart.length - 1]?.streak || 0,
                 maxStreakInWeek: Math.max(...chart.map((d) => d.streak), 0),
+                productivityScore,
             },
             chart,
         });

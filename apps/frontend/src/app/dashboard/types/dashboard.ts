@@ -91,6 +91,7 @@ export interface WeeklyReport {
         avgConsistency: number;
         currentStreak: number;
         maxStreakInWeek: number;
+        productivityScore: number;
     };
     chart: WeeklyReportDay[];
 }

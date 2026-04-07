@@ -667,14 +667,23 @@ REFRESH_TOKEN_EXPIRY=7d
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 GOOGLE_CALLBACK_URL=http://localhost:5001/api/auth/google/callback
+
+# SMTP (required for email verification and password reset)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@example.com
+SMTP_PASS=your-app-password
+SMTP_FROM=Consistify <no-reply@your-domain.com>
 ```
 
 **Frontend (.env):**
-Create `/apps/frontend/.env.local`:
+Create `/apps/frontend/.env`:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:5001
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id
+NODE_ENV=development
+NEXT_PUBLIC_BACKEND_LOCAL_URL=http://localhost:5001
+NEXT_PUBLIC_BACKEND_SERVER_URL=https://your-backend-domain.com
+NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
 ```
 
 #### 4. **Setup Database**

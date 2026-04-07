@@ -6,6 +6,7 @@ import { AuthProvider } from "../context/AuthContext";
 import { Toaster } from "react-hot-toast";
 import Navbar from "@/components/layouts/Navbar";
 import { Background } from "@/components/ui/Background";
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,6 +34,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
+        <GoogleAnalytics />
         <AuthProvider>
           <Background />
           <Navbar />

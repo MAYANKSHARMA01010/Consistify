@@ -37,9 +37,13 @@ app.get("/", (req, res) => {
 
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`DEBUG: NODE_ENV = ${process.env.NODE_ENV}`);
-  console.log(`✅ Local Backend URL: ${process.env.BACKEND_LOCAL_URL}`);
-  console.log(`✅ Deployed Backend URL: ${process.env.BACKEND_SERVER_URL}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`DEBUG: NODE_ENV = ${process.env.NODE_ENV}`);
+    console.log(`✅ Local Backend URL: ${process.env.BACKEND_LOCAL_URL}`);
+    console.log(`✅ Deployed Backend URL: ${process.env.BACKEND_SERVER_URL}`);
+  });
+}
+
+module.exports = app;

@@ -22,6 +22,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Consistify - Build Consistency That Lasts",
   description: "Track tasks, build streaks, review weekly progress, and stay consistent with an intelligent habit system.",
+  verification: {
+    google: "YrcRM1P9DxnjzH9EU9MEZzvXIg_aUbaAFyJHvHEfe5Y",
+  },
 };
 
 export default function RootLayout({

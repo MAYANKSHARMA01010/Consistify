@@ -63,10 +63,10 @@ export const WeeklyProgressChart: React.FC<WeeklyProgressChartProps> = ({ report
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                <div className="rounded-xl border border-white/10 bg-white/5 p-4 min-w-0">
                     <h4 className="text-xs font-bold tracking-wider uppercase text-zinc-400 mb-3">Tasks Completed Per Day</h4>
-                    <div className="h-64">
-                        <ResponsiveContainer width="100%" height="100%">
+                    <div className="h-64 min-w-0">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
                             <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
                                 <XAxis dataKey="day" stroke="#a1a1aa" fontSize={11} />
@@ -82,10 +82,10 @@ export const WeeklyProgressChart: React.FC<WeeklyProgressChartProps> = ({ report
                     </div>
                 </div>
 
-                <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                <div className="rounded-xl border border-white/10 bg-white/5 p-4 min-w-0">
                     <h4 className="text-xs font-bold tracking-wider uppercase text-zinc-400 mb-3">Weekly Consistency</h4>
-                    <div className="h-64">
-                        <ResponsiveContainer width="100%" height="100%">
+                    <div className="h-64 min-w-0">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
                             <LineChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
                                 <XAxis dataKey="day" stroke="#a1a1aa" fontSize={11} />
@@ -102,10 +102,10 @@ export const WeeklyProgressChart: React.FC<WeeklyProgressChartProps> = ({ report
                     </div>
                 </div>
 
-                <div className="rounded-xl border border-white/10 bg-white/5 p-4 flex flex-col items-center justify-center">
+                <div className="rounded-xl border border-white/10 bg-white/5 p-4 flex flex-col items-center justify-center min-w-0">
                     <h4 className="text-xs font-bold tracking-wider uppercase text-zinc-400 mb-3">Productivity Score</h4>
-                    <div className="h-64 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
+                    <div className="h-64 w-full min-w-0">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
                             <RadialBarChart
                                 cx="50%"
                                 cy="50%"

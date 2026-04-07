@@ -16,6 +16,18 @@ export const api = axios.create({
     withCredentials: true,
 });
 
+export class ApiClientError extends Error {
+    status?: number;
+    data?: any;
+
+    constructor(message: string, status?: number, data?: any) {
+        super(message);
+        this.name = "ApiClientError";
+        this.status = status;
+        this.data = data;
+    }
+}
+
 let isRefreshing = false;
 let refreshPromise: Promise<void> | null = null;
 
@@ -61,14 +73,23 @@ interface ApiRequestOptions {
 export const apiFetch = async <T>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> => {
     const { method = "GET", headers = {}, body } = options;
 
-    const response = await api.request<T>({
-        url: endpoint,
-        method,
-        headers: headers,
-        data: body,
-    });
+    try {
+        const response = await api.request<T>({
+            url: endpoint,
+            method,
+            headers: headers,
+            data: body,
+        });
 
-    return response.data;
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            const status = error.response?.status;
+            const message = error.response?.data?.message || error.response?.data?.error || error.message || "Something went wrong";
+            throw new ApiClientError(message, status, error.response?.data);
+        }
+        throw error;
+    }
 };
 
 export const authApi = {
@@ -77,6 +98,26 @@ export const authApi = {
     logout: () => apiFetch<void>("/api/auth/logout", { method: "POST" }),
     getMe: () => apiFetch<any>("/api/auth/me"),
     refreshToken: () => apiFetch<void>("/api/auth/refresh", { method: "POST" }),
+    requestEmailVerification: (email: string) =>
+        apiFetch<{ success: boolean; message: string; verifyToken?: string }>("/api/auth/verify-email/request", {
+            method: "POST",
+            body: { email },
+        }),
+    verifyEmail: (token: string) =>
+        apiFetch<{ success: boolean; message: string }>("/api/auth/verify-email", {
+            method: "POST",
+            body: { token },
+        }),
+    forgotPassword: (email: string) =>
+        apiFetch<{ success: boolean; message: string; resetToken?: string }>("/api/auth/forgot-password", {
+            method: "POST",
+            body: { email },
+        }),
+    resetPassword: (token: string, password: string) =>
+        apiFetch<{ success: boolean; message: string }>("/api/auth/reset-password", {
+            method: "POST",
+            body: { token, password },
+        }),
 };
 
 export const tasksApi = {
@@ -103,6 +144,10 @@ export const summaryApi = {
 };
 
 export const getErrorMessage = (error: any): string => {
+    if (error instanceof ApiClientError) {
+        return error.message;
+    }
+
     if (axios.isAxiosError(error)) {
         return error.response?.data?.message || error.response?.data?.error || error.message;
     }

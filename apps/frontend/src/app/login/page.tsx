@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { loginSchema } from "../../utils/validators";
 import toast from "react-hot-toast";
-import { getErrorMessage } from "../../utils/api";
+import { authApi, getErrorMessage } from "../../utils/api";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { NeonButton } from "@/components/ui/NeonButton";
 import { Eye, EyeOff } from "lucide-react";
@@ -18,6 +18,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isResendingVerification, setIsResendingVerification] = useState(false);
 
     useEffect(() => {
         if (!loading && isLoggedIn) {
@@ -57,6 +58,29 @@ export default function LoginPage() {
             ? process.env.NEXT_PUBLIC_BACKEND_SERVER_URL
             : process.env.NEXT_PUBLIC_BACKEND_LOCAL_URL;
         window.location.href = `${backendUrl}/api/auth/google`;
+    };
+
+    const handleResendVerification = async () => {
+        if (!email) {
+            toast.error("Enter your email first");
+            return;
+        }
+
+        setIsResendingVerification(true);
+        try {
+            const result = loginSchema.pick({ email: true }).safeParse({ email });
+            if (!result.success) {
+                toast.error(result.error.issues[0]?.message || "Enter a valid email");
+                return;
+            }
+
+            await authApi.requestEmailVerification(email);
+            toast.success("If your account exists, a verification link has been sent");
+        } catch (err: any) {
+            toast.error(getErrorMessage(err));
+        } finally {
+            setIsResendingVerification(false);
+        }
     };
 
     const inputClasses = "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all placeholder:text-zinc-600";
@@ -116,7 +140,7 @@ export default function LoginPage() {
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-[40px] text-zinc-400 hover:text-white transition-colors"
+                                className="absolute right-3 top-10 text-zinc-400 hover:text-white transition-colors"
                             >
                                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                             </button>
@@ -126,12 +150,26 @@ export default function LoginPage() {
                     <div>
                         <NeonButton
                             type="submit"
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || isResendingVerification}
                             className="w-full justify-center"
                             variant="primary"
                         >
                             {isSubmitting ? "Signing in..." : "Sign in"}
                         </NeonButton>
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm">
+                        <Link href="/forgot-password" className="text-zinc-400 hover:text-cyan-300 transition-colors">
+                            Forgot password?
+                        </Link>
+                        <button
+                            type="button"
+                            className="text-zinc-400 hover:text-cyan-300 transition-colors disabled:opacity-50"
+                            onClick={handleResendVerification}
+                            disabled={isResendingVerification || isSubmitting}
+                        >
+                            {isResendingVerification ? "Sending..." : "Resend verification"}
+                        </button>
                     </div>
                 </form>
 
@@ -149,6 +187,7 @@ export default function LoginPage() {
                 <div>
                     <button
                         onClick={handleGoogleLogin}
+                        disabled={isSubmitting || isResendingVerification}
                         className="flex w-full items-center justify-center gap-3 rounded-xl bg-white/5 border border-white/10 px-3 py-3 text-sm font-semibold text-white hover:bg-white/10 transition-colors"
                     >
                         <svg className="h-5 w-5" viewBox="0 0 24 24">

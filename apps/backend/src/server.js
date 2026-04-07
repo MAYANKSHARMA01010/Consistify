@@ -1,5 +1,7 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 const corsMiddleware = require("./configs/cors.js");
 const authRouter = require("./routes/auth.routes.js");
 const tasksRouter = require("./routes/tasks.routes.js");
@@ -11,7 +13,16 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.SERVER_PORT;
 
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 500,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 app.use(corsMiddleware);
+app.use(helmet());
+app.use(globalLimiter);
 app.use(express.json());
 app.use(cookieParser());
 

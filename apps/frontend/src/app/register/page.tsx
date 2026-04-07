@@ -59,7 +59,7 @@ export default function RegisterPage() {
                 email: formData.email,
                 password: formData.password
             });
-            toast.success("Account created successfully!");
+            toast.success("Account created. Verify your email before signing in.");
             router.push("/login");
         } catch (err: any) {
             toast.error(getErrorMessage(err));
@@ -161,7 +161,7 @@ export default function RegisterPage() {
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-[40px] text-zinc-400 hover:text-white transition-colors"
+                                className="absolute right-3 top-10 text-zinc-400 hover:text-white transition-colors"
                             >
                                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                             </button>
@@ -183,7 +183,7 @@ export default function RegisterPage() {
                             <button
                                 type="button"
                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                className="absolute right-3 top-[34px] text-zinc-400 hover:text-white transition-colors"
+                                className="absolute right-3 top-8.5 text-zinc-400 hover:text-white transition-colors"
                             >
                                 {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                             </button>
@@ -216,6 +216,7 @@ export default function RegisterPage() {
                 <div>
                     <button
                         onClick={handleGoogleLogin}
+                        disabled={isSubmitting}
                         className="flex w-full items-center justify-center gap-3 rounded-xl bg-white/5 border border-white/10 px-3 py-3 text-sm font-semibold text-white hover:bg-white/10 transition-colors"
                     >
                         <svg className="h-5 w-5" viewBox="0 0 24 24">

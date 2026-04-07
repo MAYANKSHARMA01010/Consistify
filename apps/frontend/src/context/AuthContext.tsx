@@ -11,6 +11,7 @@ type User = {
     email: string;
     username: string;
     role: "USER" | "ADMIN";
+    emailVerified: boolean;
     xp?: number;
 };
 
@@ -49,9 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             headers: { "Content-Type": "application/json" }
         });
         await refreshUser();
-        if (user) {
-            router.push("/dashboard");
-        }
+        router.push("/dashboard");
     };
 
     const register = async (data: any) => {
@@ -60,10 +59,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             body: JSON.stringify(data),
             headers: { "Content-Type": "application/json" }
         });
-        await refreshUser();
-        if (user) {
-            router.push("/dashboard");
-        }
     };
 
     const logout = async () => {

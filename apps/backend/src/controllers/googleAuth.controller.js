@@ -91,6 +91,7 @@ const googleCallback = async (req, res) => {
                     email,
                     username,
                     password: null,
+                    emailVerifiedAt: new Date(),
                 },
             });
         }

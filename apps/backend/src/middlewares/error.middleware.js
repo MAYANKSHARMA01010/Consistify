@@ -16,6 +16,12 @@ const errorHandler = (err, req, res, next) => {
     } else if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
         statusCode = 400;
         message = "Invalid JSON payload";
+    } else if (err.code === "P2002") {
+        statusCode = 409;
+        message = "A record with these values already exists";
+    } else if (err.status === 429) {
+        statusCode = 429;
+        message = err.message || "Too many requests";
     } else {
         console.error("Unhandled Error:", err);
     }
@@ -23,6 +29,7 @@ const errorHandler = (err, req, res, next) => {
     res.status(statusCode).json({
         success: false,
         message,
+        error: process.env.NODE_ENV === "production" ? undefined : err.message,
     });
 };
 

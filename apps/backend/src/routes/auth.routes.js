@@ -1,5 +1,14 @@
 const express = require("express");
 const RateLimit = require("express-rate-limit");
+const validateRequest = require("../middlewares/validateRequest.middleware");
+const {
+    registerSchema,
+    loginSchema,
+    requestEmailVerificationSchema,
+    verifyEmailSchema,
+    forgotPasswordSchema,
+    resetPasswordSchema
+} = require("../validators/auth.validators");
 const {
     register,
     login,
@@ -10,6 +19,7 @@ const {
     verifyEmail,
     forgotPassword,
     resetPassword,
+    dismissBanner,
 } = require("../controllers/auth.controller");
 
 const {
@@ -42,14 +52,15 @@ const authSensitiveLimiter = RateLimit({
 
 const authRouter = express.Router();
 
-authRouter.post("/register", authSensitiveLimiter, register);
-authRouter.post("/login", authSensitiveLimiter, login);
+authRouter.post("/register", authSensitiveLimiter, validateRequest(registerSchema), register);
+authRouter.post("/login", authSensitiveLimiter, validateRequest(loginSchema), login);
 authRouter.post("/logout", logout);
-authRouter.post("/verify-email/request", authSensitiveLimiter, requestEmailVerification);
-authRouter.post("/verify-email", authSensitiveLimiter, verifyEmail);
-authRouter.post("/forgot-password", authSensitiveLimiter, forgotPassword);
-authRouter.post("/reset-password", authSensitiveLimiter, resetPassword);
+authRouter.post("/verify-email/request", authSensitiveLimiter, validateRequest(requestEmailVerificationSchema), requestEmailVerification);
+authRouter.post("/verify-email", authSensitiveLimiter, validateRequest(verifyEmailSchema), verifyEmail);
+authRouter.post("/forgot-password", authSensitiveLimiter, validateRequest(forgotPasswordSchema), forgotPassword);
+authRouter.post("/reset-password", authSensitiveLimiter, validateRequest(resetPasswordSchema), resetPassword);
 authRouter.get("/me", authLimiter, requireAuth, me);
+authRouter.post("/dismiss-banner", authLimiter, requireAuth, dismissBanner);
 
 authRouter.post("/refresh", authLimiter, requireRefreshAuth, refreshToken);
 

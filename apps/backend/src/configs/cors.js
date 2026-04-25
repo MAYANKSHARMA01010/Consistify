@@ -1,9 +1,9 @@
 const cors = require("cors");
-require("dotenv").config();
+const { env } = require("./env");
 
 const allowedOrigins = new Set([
-    process.env.FRONTEND_LOCAL_URL,
-    process.env.FRONTEND_SERVER_URL,
+    env.FRONTEND_LOCAL_URL,
+    env.FRONTEND_SERVER_URL,
 ]);
 
 const corsOptions = {

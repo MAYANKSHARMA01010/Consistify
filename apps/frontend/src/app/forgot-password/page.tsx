@@ -3,8 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { authApi, getErrorMessage } from "../../utils/api";
-import { forgotPasswordSchema } from "../../utils/validators";
+import { authApi, getErrorMessage } from "@/api";
+import { forgotPasswordSchema } from "@/validators/auth";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { NeonButton } from "@/components/ui/NeonButton";
 

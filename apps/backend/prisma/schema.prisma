@@ -31,6 +31,7 @@ model User {
   password        String?
   role            Role      @default(USER)
   emailVerifiedAt DateTime?
+  verificationBannerDismissed Boolean @default(false)
 
   tasks        Task[]
   dailyStatus  DailyTaskStatus[]

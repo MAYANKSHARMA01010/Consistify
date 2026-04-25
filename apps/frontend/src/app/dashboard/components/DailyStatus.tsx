@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DailyStatusData, Mood } from '../types/dashboard';
+import { DailyStatusData, Mood } from '@/types/dashboard';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { NeonButton } from '@/components/ui/NeonButton';
 import { cn } from '@/utils/cn';

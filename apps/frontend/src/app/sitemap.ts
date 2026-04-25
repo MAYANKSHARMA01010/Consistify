@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const siteUrl = "https://consistify69.vercel.app";
+  const siteUrl = process.env.NEXT_PUBLIC_FRONTEND_SERVER_URL || process.env.NEXT_PUBLIC_FRONTEND_LOCAL_URL;
   const now = new Date();
 
   return [

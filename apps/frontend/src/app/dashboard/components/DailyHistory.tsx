@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DailySummary, Priority } from '../types/dashboard';
+import { DailySummary, Priority } from '@/types/dashboard';
 import { GlassCard } from '@/components/ui/GlassCard';
 
 interface DailyHistoryProps {
@@ -62,7 +62,7 @@ export const DailyHistory: React.FC<DailyHistoryProps> = ({ history }) => {
         const day = localHistory.find(d => d.id === id);
         if (day && !day.id.startsWith("empty-") && (!day.tasks || day.tasks.length === 0)) {
             try {
-                const { summaryApi } = await import('../../../utils/api');
+                const { summaryApi } = await import('@/api');
                 setLoadingDetails(prev => ({ ...prev, [id]: true }));
                 const tasks = await summaryApi.getSummaryDetails(id);
                 setLocalHistory(prev => prev.map(d => d.id === id ? { ...d, tasks } : d));

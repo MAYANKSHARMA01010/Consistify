@@ -4,12 +4,13 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { loginSchema } from "../../utils/validators";
+import { loginSchema } from "@/validators/auth";
 import toast from "react-hot-toast";
-import { authApi, getErrorMessage } from "../../utils/api";
+import { authApi, getErrorMessage } from "@/api";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { NeonButton } from "@/components/ui/NeonButton";
 import { Eye, EyeOff } from "lucide-react";
+import { env } from "../../env";
 
 export default function LoginPage() {
     const { login, isLoggedIn, loading } = useAuth();
@@ -54,9 +55,9 @@ export default function LoginPage() {
     };
 
     const handleGoogleLogin = () => {
-        const backendUrl = process.env.NODE_ENV === "production"
-            ? process.env.NEXT_PUBLIC_BACKEND_SERVER_URL
-            : process.env.NEXT_PUBLIC_BACKEND_LOCAL_URL;
+        const backendUrl = env.NODE_ENV === "production"
+            ? env.NEXT_PUBLIC_BACKEND_SERVER_URL
+            : env.NEXT_PUBLIC_BACKEND_LOCAL_URL;
         window.location.href = `${backendUrl}/api/auth/google`;
     };
 

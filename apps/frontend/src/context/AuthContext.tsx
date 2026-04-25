@@ -1,20 +1,12 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { apiFetch } from "../utils/api";
+import { apiFetch } from "@/api";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { trackEvent } from "../components/analytics/GoogleAnalytics";
 
-type User = {
-    id: string;
-    name: string;
-    email: string;
-    username: string;
-    role: "USER" | "ADMIN";
-    emailVerified: boolean;
-    xp?: number;
-};
+import { User } from "@/types/user";
 
 type AuthContextType = {
     user: User | null;

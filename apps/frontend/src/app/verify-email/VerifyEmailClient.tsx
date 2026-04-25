@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
-import { authApi, getErrorMessage } from "../../utils/api";
+import { authApi, getErrorMessage } from "@/api";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { NeonButton } from "@/components/ui/NeonButton";
 

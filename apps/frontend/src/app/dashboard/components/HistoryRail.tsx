@@ -1,5 +1,5 @@
 import React from 'react';
-import { DailySummary } from '../types/dashboard';
+import { DailySummary } from '@/types/dashboard';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';

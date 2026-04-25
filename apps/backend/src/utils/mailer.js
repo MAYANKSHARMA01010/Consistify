@@ -1,8 +1,9 @@
 const nodemailer = require("nodemailer");
+const { env } = require("../configs/env");
 
 const getTransporter = () => {
-    const user = process.env.CONTACT_EMAIL_USER;
-    const pass = process.env.CONTACT_EMAIL_PASS;
+    const user = env.CONTACT_EMAIL_USER;
+    const pass = env.CONTACT_EMAIL_PASS;
 
     if (!user || !pass) {
         return null;
@@ -26,7 +27,7 @@ const sendEmail = async ({ to, subject, text, html }) => {
     }
 
     await transporter.sendMail({
-        from: process.env.CONTACT_EMAIL_USER,
+        from: env.CONTACT_EMAIL_USER,
         to,
         subject,
         text,

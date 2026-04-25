@@ -1,9 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { DashboardStats, Task, DailyStatusData, Mood, DailySummary, WeeklyReport } from "../types/dashboard";
-import { summaryApi, tasksApi, dailyStatusApi } from "../../../utils/api";
-import { Priority } from "../types/dashboard";
+import { DashboardStats, Task, DailyStatusData, Mood, DailySummary, WeeklyReport, Priority } from "@/types/dashboard";
+import { summaryApi, tasksApi, dailyStatusApi } from "@/api";
 import { trackEvent } from "@/components/analytics/GoogleAnalytics";
 
 const DASHBOARD_QUERY_KEY = ["dashboard-data"];

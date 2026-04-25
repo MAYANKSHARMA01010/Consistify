@@ -4,22 +4,22 @@ const {
     signAccessToken,
     signRefreshToken,
 } = require("../utils/jwt");
+const axios = require("axios");
+const { env } = require("../configs/env");
 
-require("dotenv").config();
-
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
 
 const googleLogin = async (req, res) => {
     try {
         const redirectUrl =
-            process.env.NODE_ENV === "production"
-                ? `${process.env.BACKEND_SERVER_URL}/api/auth/google/callback`
-                : process.env.GOOGLE_CALLBACK_URL;
+            env.NODE_ENV === "production"
+                ? `${env.BACKEND_SERVER_URL}/api/auth/google/callback`
+                : `${env.BACKEND_LOCAL_URL}/api/auth/google/callback`;
 
         const authUrl =
             `https://accounts.google.com/o/oauth2/v2/auth` +
             `?response_type=code` +
-            `&client_id=${process.env.GOOGLE_CLIENT_ID}` +
+            `&client_id=${env.GOOGLE_CLIENT_ID}` +
             `&redirect_uri=${redirectUrl}` +
             `&scope=openid%20email%20profile`;
 
@@ -45,23 +45,21 @@ const googleCallback = async (req, res) => {
         }
 
         const redirectUrl =
-            process.env.NODE_ENV === "production"
-                ? `${process.env.BACKEND_SERVER_URL}/api/auth/google/callback`
-                : process.env.GOOGLE_CALLBACK_URL;
+            env.NODE_ENV === "production"
+                ? `${env.BACKEND_SERVER_URL}/api/auth/google/callback`
+                : `${env.BACKEND_LOCAL_URL}/api/auth/google/callback`;
 
-        const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({
-                code,
-                client_id: process.env.GOOGLE_CLIENT_ID,
-                client_secret: process.env.GOOGLE_CLIENT_SECRET,
-                redirect_uri: redirectUrl,
-                grant_type: "authorization_code",
-            }),
+        const tokenRes = await axios.post("https://oauth2.googleapis.com/token", new URLSearchParams({
+            code,
+            client_id: env.GOOGLE_CLIENT_ID,
+            client_secret: env.GOOGLE_CLIENT_SECRET,
+            redirect_uri: redirectUrl,
+            grant_type: "authorization_code",
+        }), {
+            headers: { "Content-Type": "application/x-www-form-urlencoded" }
         });
 
-        const tokenData = await tokenRes.json();
+        const tokenData = tokenRes.data;
 
         if (!tokenData.id_token) {
             throw new Error("Failed to retrieve ID token from Google");
@@ -69,7 +67,7 @@ const googleCallback = async (req, res) => {
 
         const ticket = await client.verifyIdToken({
             idToken: tokenData.id_token,
-            audience: process.env.GOOGLE_CLIENT_ID,
+            audience: env.GOOGLE_CLIENT_ID,
         });
 
         const googleUser = ticket.getPayload();
@@ -104,7 +102,7 @@ const googleCallback = async (req, res) => {
         const accessToken = signAccessToken(jwtPayload);
         const refreshToken = signRefreshToken(jwtPayload);
 
-        const isProd = process.env.NODE_ENV === "production";
+        const isProd = env.NODE_ENV === "production";
 
         res.cookie("accessToken", accessToken, {
             httpOnly: true,
@@ -119,8 +117,8 @@ const googleCallback = async (req, res) => {
         });
 
         const frontendRedirect = isProd
-            ? `${process.env.FRONTEND_SERVER_URL}/dashboard`
-            : `${process.env.FRONTEND_LOCAL_URL}/dashboard`;
+            ? `${env.FRONTEND_SERVER_URL}/dashboard`
+            : `${env.FRONTEND_LOCAL_URL}/dashboard`;
 
         return res.redirect(frontendRedirect);
     } catch (error) {

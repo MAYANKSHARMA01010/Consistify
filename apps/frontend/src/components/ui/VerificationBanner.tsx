@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
-import { apiFetch, authApi } from "@/utils/api";
+import { apiFetch, authApi } from "@/api";
 import toast from "react-hot-toast";
 import { AlertCircle, Loader2, X } from "lucide-react";
 
@@ -46,7 +46,7 @@ export default function VerificationBanner() {
     };
 
     return (
-        <div className="fixed top-[72px] left-0 right-0 w-full bg-yellow-500/90 backdrop-blur-md text-black px-4 py-3 flex flex-col sm:flex-row items-center justify-center gap-3 text-sm z-40 pr-10 shadow-lg font-medium">
+        <div className="sticky top-[72px] w-full bg-yellow-500/90 backdrop-blur-md text-black px-4 py-3 flex flex-col sm:flex-row items-center justify-center gap-3 text-sm z-40 pr-10 shadow-lg font-medium">
             <div className="flex items-center gap-2">
                 <AlertCircle className="w-4 h-4" />
                 <span>Your account is not verified. Please verify your email to access all features.</span>

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Task, Priority } from '../types/dashboard';
+import { Task, Priority } from '@/types/dashboard';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { NeonButton } from '@/components/ui/NeonButton';
 import { motion, AnimatePresence } from 'framer-motion';

@@ -5,8 +5,8 @@ import { useAuth } from "../../context/AuthContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from "date-fns";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { summaryApi } from "../../utils/api";
-import { DailySummary, DailyTaskStatusSnapshot } from "../dashboard/types/dashboard";
+import { summaryApi } from "@/api";
+import { DailySummary, DailyTaskStatusSnapshot } from "@/types/dashboard";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/utils/cn";
 

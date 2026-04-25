@@ -5,6 +5,7 @@ import { AuthProvider } from "../context/AuthContext";
 
 import { Toaster } from "react-hot-toast";
 import Navbar from "@/components/layouts/Navbar";
+import VerificationBanner from "@/components/ui/VerificationBanner";
 import { Background } from "@/components/ui/Background";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
@@ -46,6 +47,7 @@ export default function RootLayout({
           <AuthProvider>
             <Background />
             <Navbar />
+            <VerificationBanner />
             <main className="min-h-screen">{children}</main>
             <Toaster
               position="bottom-right"

@@ -1,5 +1,5 @@
 import React from "react";
-import { WeeklyReport } from "../types/dashboard";
+import { WeeklyReport } from "@/types/dashboard";
 import { GlassCard } from "@/components/ui/GlassCard";
 import {
     Bar,
@@ -26,6 +26,23 @@ const formatDay = (date: string) => {
 };
 
 export const WeeklyProgressChart: React.FC<WeeklyProgressChartProps> = ({ report }) => {
+    const [isMounted, setIsMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        const timer = setTimeout(() => setIsMounted(true), 50);
+        return () => clearTimeout(timer);
+    }, []);
+
+    if (!isMounted) {
+        return (
+            <GlassCard className="p-6">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-3">Weekly Charts</h3>
+                <div className="h-[256px] flex items-center justify-center">
+                    <p className="text-sm text-zinc-500 animate-pulse">Loading charts...</p>
+                </div>
+            </GlassCard>
+        );
+    }
     if (!report) {
         return (
             <GlassCard className="p-6">
@@ -65,8 +82,8 @@ export const WeeklyProgressChart: React.FC<WeeklyProgressChartProps> = ({ report
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
                 <div className="rounded-xl border border-white/10 bg-white/5 p-4 min-w-0">
                     <h4 className="text-xs font-bold tracking-wider uppercase text-zinc-400 mb-3">Tasks Completed Per Day</h4>
-                    <div className="h-64 min-w-0">
-                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
+                    <div className="w-full" style={{ height: 256 }}>
+                        <ResponsiveContainer width="100%" height={256}>
                             <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
                                 <XAxis dataKey="day" stroke="#a1a1aa" fontSize={11} />
@@ -84,8 +101,8 @@ export const WeeklyProgressChart: React.FC<WeeklyProgressChartProps> = ({ report
 
                 <div className="rounded-xl border border-white/10 bg-white/5 p-4 min-w-0">
                     <h4 className="text-xs font-bold tracking-wider uppercase text-zinc-400 mb-3">Weekly Consistency</h4>
-                    <div className="h-64 min-w-0">
-                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
+                    <div className="w-full" style={{ height: 256 }}>
+                        <ResponsiveContainer width="100%" height={256}>
                             <LineChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
                                 <XAxis dataKey="day" stroke="#a1a1aa" fontSize={11} />
@@ -104,8 +121,8 @@ export const WeeklyProgressChart: React.FC<WeeklyProgressChartProps> = ({ report
 
                 <div className="rounded-xl border border-white/10 bg-white/5 p-4 flex flex-col items-center justify-center min-w-0">
                     <h4 className="text-xs font-bold tracking-wider uppercase text-zinc-400 mb-3">Productivity Score</h4>
-                    <div className="h-64 w-full min-w-0">
-                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
+                    <div className="w-full" style={{ height: 256 }}>
+                        <ResponsiveContainer width="100%" height={256}>
                             <RadialBarChart
                                 cx="50%"
                                 cy="50%"

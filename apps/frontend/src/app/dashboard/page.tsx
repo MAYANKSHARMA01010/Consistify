@@ -14,7 +14,7 @@ const WeeklyProgressChart = dynamic(() => import("./components/WeeklyProgressCha
 const StreakBadge = dynamic(() => import("./components/StreakBadge").then((module) => module.StreakBadge));
 
 import { SplashScreen } from "@/components/ui/SplashScreen";
-import { useDashboardData } from "./hooks/useDashboardData";
+import { useDashboardData } from "@/hooks/useDashboardData";
 import { GlassCard } from "@/components/ui/GlassCard";
 
 const motivationalQuotes = [

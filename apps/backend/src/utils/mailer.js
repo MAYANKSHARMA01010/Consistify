@@ -1,19 +1,15 @@
 const nodemailer = require("nodemailer");
 
 const getTransporter = () => {
-    const host = process.env.SMTP_HOST;
-    const port = Number(process.env.SMTP_PORT || 587);
-    const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASS;
+    const user = process.env.CONTACT_EMAIL_USER;
+    const pass = process.env.CONTACT_EMAIL_PASS;
 
-    if (!host || !user || !pass) {
+    if (!user || !pass) {
         return null;
     }
 
     return nodemailer.createTransport({
-        host,
-        port,
-        secure: port === 465,
+        service: "gmail",
         auth: {
             user,
             pass,
@@ -30,7 +26,7 @@ const sendEmail = async ({ to, subject, text, html }) => {
     }
 
     await transporter.sendMail({
-        from: process.env.SMTP_FROM || process.env.SMTP_USER,
+        from: process.env.CONTACT_EMAIL_USER,
         to,
         subject,
         text,

@@ -1,5 +1,15 @@
 const prisma = require("../configs/prisma");
 const ApiError = require("../utils/ApiError");
+const cache = require("../configs/redis");
+
+const CACHE_TTL = 300; // 5 minutes
+
+const invalidateUserCache = async (userId) => {
+    await cache.del(`summary:today:${userId}`);
+    await cache.del(`summary:weekly:${userId}`);
+    // Note: Range cache is harder to invalidate specifically, but today/weekly are the most frequent.
+    // For simplicity, we can let range cache expire or use a versioning scheme if needed.
+};
 
 const calculateAndSaveSummary = async (userId, targetDate) => {
     try {
@@ -53,7 +63,6 @@ const calculateAndSaveSummary = async (userId, targetDate) => {
         const totalTasks = statuses.length;
         const completedTasks = statuses.filter((s) => s.isCompleted).length;
         
-        // Fix: Do not penalize if the day is 'today' because the day is not over yet.
         const today = new Date();
         today.setUTCHours(0, 0, 0, 0);
         const isToday = summaryDate.getTime() === today.getTime();
@@ -159,6 +168,9 @@ const calculateAndSaveSummary = async (userId, targetDate) => {
             });
         }
 
+        // Invalidate cache since data changed
+        await invalidateUserCache(userId);
+
         return summary;
     } catch (error) {
         console.error("Calculate Summary Error:", error);
@@ -182,14 +194,28 @@ const calculateWeeklyPoints = async (userId) => {
 };
 
 const getTodaySummary = async (userId) => {
+    const cacheKey = `summary:today:${userId}`;
+    const cachedData = await cache.get(cacheKey);
+    if (cachedData) return cachedData;
+
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
 
-    // Ensure the summary is calculated and up-to-date
     await calculateAndSaveSummary(userId, today);
 
     const summary = await prisma.dailySummary.findUnique({
-        where: { userId_date: { userId, date: today } }
+        where: { userId_date: { userId, date: today } },
+        select: {
+            completedTasks: true,
+            totalTasks: true,
+            points: true,
+            consistency: true,
+            focus: true,
+            mood: true,
+            notes: true,
+            currentStreak: true,
+            maxStreak: true,
+        }
     });
 
     const pendingTasks = await prisma.task.count({
@@ -215,11 +241,12 @@ const getTodaySummary = async (userId) => {
         yesterday.setDate(yesterday.getDate() - 1);
         const previousSummary = await prisma.dailySummary.findUnique({
             where: { userId_date: { userId, date: yesterday } },
+            select: { currentStreak: true }
         });
         displayStreak = previousSummary?.currentStreak || 0;
     }
 
-    return {
+    const result = {
         completedToday,
         pendingTasks,
         streak: displayStreak,
@@ -233,6 +260,9 @@ const getTodaySummary = async (userId) => {
         totalTasks: summary?.totalTasks || 0,
         missedDayPenalty: MISSED_DAY_PENALTY,
     };
+
+    await cache.set(cacheKey, result, CACHE_TTL);
+    return result;
 };
 
 const updateSummary = async (userId, data) => {
@@ -248,7 +278,7 @@ const updateSummary = async (userId, data) => {
         throw new ApiError(404, "No summary found for this date. Create a task first to initialize tracking.");
     }
 
-    return await prisma.dailySummary.update({
+    const updated = await prisma.dailySummary.update({
         where: { userId_date: { userId, date: targetDate } },
         data: {
             focus: focus !== undefined ? focus : existingSummary.focus,
@@ -256,25 +286,50 @@ const updateSummary = async (userId, data) => {
             notes: notes !== undefined ? notes : existingSummary.notes,
         }
     });
+
+    await invalidateUserCache(userId);
+    return updated;
 };
 
 const getSummaryByRange = async (userId, startDateStr, endDateStr) => {
+    const cacheKey = `summary:range:${userId}:${startDateStr}:${endDateStr}`;
+    const cachedData = await cache.get(cacheKey);
+    if (cachedData) return cachedData;
+
     const startDate = new Date(startDateStr);
     startDate.setUTCHours(0, 0, 0, 0);
     
     const endDate = new Date(endDateStr);
     endDate.setUTCHours(23, 59, 59, 999);
 
-    return await prisma.dailySummary.findMany({
+    const result = await prisma.dailySummary.findMany({
         where: {
             userId,
             date: { gte: startDate, lte: endDate }
         },
+        select: {
+            date: true,
+            completedTasks: true,
+            totalTasks: true,
+            points: true,
+            consistency: true,
+            focus: true,
+            mood: true,
+            notes: true,
+            currentStreak: true,
+        },
         orderBy: { date: 'asc' }
     });
+
+    await cache.set(cacheKey, result, CACHE_TTL);
+    return result;
 };
 
 const getWeeklyReport = async (userId) => {
+    const cacheKey = `summary:weekly:${userId}`;
+    const cachedData = await cache.get(cacheKey);
+    if (cachedData) return cachedData;
+
     const end = new Date();
     end.setUTCHours(23, 59, 59, 999);
     
@@ -286,6 +341,14 @@ const getWeeklyReport = async (userId) => {
         where: {
             userId,
             date: { gte: start, lte: end }
+        },
+        select: {
+            date: true,
+            points: true,
+            consistency: true,
+            completedTasks: true,
+            totalTasks: true,
+            currentStreak: true,
         },
         orderBy: { date: 'asc' }
     });
@@ -322,7 +385,7 @@ const getWeeklyReport = async (userId) => {
     const productivityScoreRaw = (avgConsistency * 0.6) + (completionRate * 0.4) - (missedDays * 10);
     const productivityScore = Math.max(0, Math.min(100, Number(productivityScoreRaw.toFixed(2))));
 
-    return {
+    const result = {
         range: {
             start: start.toISOString().split("T")[0],
             end: end.toISOString().split("T")[0],
@@ -337,6 +400,9 @@ const getWeeklyReport = async (userId) => {
         },
         chart,
     };
+
+    await cache.set(cacheKey, result, CACHE_TTL);
+    return result;
 };
 
 const getSummaryDetails = async (userId, id) => {

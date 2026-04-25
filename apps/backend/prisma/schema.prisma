@@ -74,7 +74,8 @@ model Task {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([userId])
+  @@index([userId, isActive])
+  @@index([userId, startDate, endDate])
 }
 
 model DailyTaskStatus {
@@ -93,7 +94,7 @@ model DailyTaskStatus {
   updatedAt DateTime @updatedAt
 
   @@unique([taskId, date])
-  @@index([userId, date])
+  @@index([userId, date, isCompleted])
 }
 
 model DailySummary {

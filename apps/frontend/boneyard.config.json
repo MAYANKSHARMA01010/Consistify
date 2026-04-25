@@ -1,0 +1,6 @@
+{
+  "routes": ["/dashboard"],
+  "breakpoints": [375, 768, 1280],
+  "output": "./src/bones",
+  "url": "http://localhost:3000"
+}

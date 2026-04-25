@@ -58,38 +58,58 @@ export const useDashboardData = (isLoggedIn: boolean) => {
     const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split("T")[0]);
     const lastTrackedStreakRef = useRef<number>(0);
 
-    const dashboardQuery = useQuery({
-        queryKey: DASHBOARD_QUERY_KEY,
+    // 1. Stats Query
+    const statsQuery = useQuery({
+        queryKey: ["dashboard", "stats"],
+        enabled: isLoggedIn,
+        queryFn: () => summaryApi.getTodaySummary(),
+        staleTime: 60000,
+    });
+
+    // 2. Tasks Query
+    const tasksQuery = useQuery({
+        queryKey: ["dashboard", "tasks"],
+        enabled: isLoggedIn,
+        queryFn: () => tasksApi.getTasks(),
+        staleTime: 30000,
+    });
+
+    // 3. Daily Status Query
+    const statusQuery = useQuery({
+        queryKey: ["dashboard", "status"],
+        enabled: isLoggedIn,
+        queryFn: () => dailyStatusApi.getDailyStatus().catch(() => null),
+        staleTime: 60000,
+    });
+
+    // 4. History Query
+    const historyQuery = useQuery({
+        queryKey: ["dashboard", "history"],
         enabled: isLoggedIn,
         queryFn: async () => {
             const today = new Date().toISOString().split("T")[0];
             const sevenDaysAgo = new Date();
             sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
             const startDate = sevenDaysAgo.toISOString().split("T")[0];
-
-            const [statsData, tasksData, statusData, historyData, weeklyReportData] = await Promise.all([
-                summaryApi.getTodaySummary(),
-                tasksApi.getTasks(),
-                dailyStatusApi.getDailyStatus().catch(() => null),
-                summaryApi.getSummaryByRange(startDate, today).catch(() => []),
-                summaryApi.getWeeklyReport().catch(() => null),
-            ]);
-
-            return {
-                stats: statsData,
-                tasks: tasksData,
-                dailyStatus: statusData,
-                history: buildFilledHistory(historyData),
-                weeklyReport: weeklyReportData as WeeklyReport | null,
-            };
+            const data = await summaryApi.getSummaryByRange(startDate, today);
+            return buildFilledHistory(data);
         },
+        staleTime: 300000,
     });
 
-    const stats = dashboardQuery.data?.stats || EMPTY_STATS;
-    const tasks = dashboardQuery.data?.tasks || [];
-    const dailyStatus = (dashboardQuery.data?.dailyStatus || null) as DailyStatusData | null;
-    const history = dashboardQuery.data?.history || EMPTY_HISTORY;
-    const weeklyReport = dashboardQuery.data?.weeklyReport || null;
+    // 5. Weekly Report Query
+    const weeklyQuery = useQuery({
+        queryKey: ["dashboard", "weekly"],
+        enabled: isLoggedIn,
+        queryFn: () => summaryApi.getWeeklyReport(),
+        staleTime: 300000,
+    });
+
+    const stats = statsQuery.data || EMPTY_STATS;
+    const tasks = tasksQuery.data || [];
+    const dailyStatus = (statusQuery.data || null) as DailyStatusData | null;
+    const history = historyQuery.data || EMPTY_HISTORY;
+    const weeklyReport = weeklyQuery.data || null;
 
     const isToday = (date: string) => {
         const today = new Date().toISOString().split("T")[0];
@@ -160,7 +180,7 @@ export const useDashboardData = (isLoggedIn: boolean) => {
     }, [stats.streak, stats.maxStreak]);
 
     const refetchDashboard = async () => {
-        await queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY });
+        await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     };
 
     const addTaskMutation = useMutation({
@@ -263,7 +283,10 @@ export const useDashboardData = (isLoggedIn: boolean) => {
         dailyStatus,
         tasks,
         history,
-        isLoading: dashboardQuery.isLoading,
+        isLoading: statsQuery.isLoading,
+        isTasksLoading: tasksQuery.isLoading,
+        isWeeklyLoading: weeklyQuery.isLoading,
+        isHistoryLoading: historyQuery.isLoading,
         refetch: refetchDashboard,
         addTask,
         updateTask,

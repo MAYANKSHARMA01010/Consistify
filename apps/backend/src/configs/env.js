@@ -9,6 +9,8 @@ const envSchema = z.object({
     BACKEND_LOCAL_URL: z.string().url(),
     BACKEND_SERVER_URL: z.string().url(),
     DATABASE_URL: z.string().url(),
+    DATABASE_LOCAL_URL: z.string().url().optional(),
+    DATABASE_SERVER_URL: z.string().url().optional(),
     GOOGLE_CLIENT_ID: z.string().min(1, "Google Client ID is required"),
     GOOGLE_CLIENT_SECRET: z.string().min(1, "Google Client Secret is required"),
     ACCESS_TOKEN_EXPIRY: z.string().default("15m"),
@@ -18,6 +20,8 @@ const envSchema = z.object({
     CONTACT_EMAIL_USER: z.string().email(),
     CONTACT_EMAIL_PASS: z.string().min(1, "Email password is required"),
     CONTACT_RECIPIENT_EMAIL: z.string().email(),
+    REDIS_LOCAL_URL: z.string().optional(),
+    REDIS_SERVER_URL: z.string().optional(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

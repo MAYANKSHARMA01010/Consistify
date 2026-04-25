@@ -1,6 +1,9 @@
 const prisma = require("../configs/prisma");
 const ApiError = require("../utils/ApiError");
 const summaryService = require("./summary.service");
+const cache = require("../configs/redis");
+
+const CACHE_TTL = 300; // 5 minutes
 
 const normalizeDate = (dateString) => {
     const date = dateString ? new Date(dateString) : new Date();
@@ -13,6 +16,11 @@ const normalizeDate = (dateString) => {
 
 const getDailyStatus = async (userId, dateStr) => {
     const queryDate = normalizeDate(dateStr);
+    const dateKey = queryDate.toISOString().split("T")[0];
+    const cacheKey = `status:list:${userId}:${dateKey}`;
+    
+    const cachedData = await cache.get(cacheKey);
+    if (cachedData) return cachedData;
 
     const tasks = await prisma.task.findMany({
         where: {
@@ -48,7 +56,7 @@ const getDailyStatus = async (userId, dateStr) => {
         })
     );
 
-    const dailyStatuses = await prisma.dailyTaskStatus.findMany({
+    const result = await prisma.dailyTaskStatus.findMany({
         where: {
             userId,
             date: queryDate,
@@ -61,7 +69,8 @@ const getDailyStatus = async (userId, dateStr) => {
         },
     });
 
-    return dailyStatuses;
+    await cache.set(cacheKey, result, CACHE_TTL);
+    return result;
 };
 
 const updateDailyStatus = async (userId, data) => {
@@ -72,6 +81,7 @@ const updateDailyStatus = async (userId, data) => {
     if (isCompleted === undefined) throw new ApiError(400, "isCompleted status is required");
 
     const statusDate = normalizeDate(date);
+    const dateKey = statusDate.toISOString().split("T")[0];
 
     const task = await prisma.task.findUnique({
         where: { id: taskId },
@@ -102,6 +112,11 @@ const updateDailyStatus = async (userId, data) => {
     });
 
     await summaryService.calculateAndSaveSummary(userId, statusDate);
+    
+    // Invalidate status list cache for this day
+    await cache.del(`status:list:${userId}:${dateKey}`);
+    // Also invalidate task list because it includes status
+    await cache.del(`tasks:list:${userId}`);
 
     return status;
 };

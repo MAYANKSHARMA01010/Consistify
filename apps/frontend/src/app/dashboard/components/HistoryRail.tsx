@@ -50,7 +50,7 @@ export const HistoryRail: React.FC<HistoryRailProps> = ({ history }) => {
 
                     return (
                         <motion.div
-                            key={day.id}
+                            key={day.date}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.05 }}

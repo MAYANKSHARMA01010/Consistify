@@ -5,6 +5,7 @@ import { NeonButton } from "@/components/ui/NeonButton";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { motion } from "framer-motion";
 import { SplashScreen } from "@/components/ui/SplashScreen";
+import { Skeleton } from "boneyard-js/react";
 
 const features = [
     {

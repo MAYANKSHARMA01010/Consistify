@@ -9,6 +9,7 @@ import VerificationBanner from "@/components/ui/VerificationBanner";
 import { Background } from "@/components/ui/Background";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
+import '@/bones/registry'; 
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

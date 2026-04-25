@@ -1,6 +1,13 @@
 const prisma = require("../configs/prisma");
 const ApiError = require("../utils/ApiError");
 const { calculateAndSaveSummary } = require("./summary.service");
+const cache = require("../configs/redis");
+
+const CACHE_TTL = 300; // 5 minutes
+
+const invalidateTaskCache = async (userId) => {
+    await cache.del(`tasks:list:${userId}`);
+};
 
 const createTask = async (userId, data) => {
     const { title, priority, startDate, endDate } = data;
@@ -27,10 +34,15 @@ const createTask = async (userId, data) => {
         },
     });
 
+    await invalidateTaskCache(userId);
     return task;
 };
 
 const getTasks = async (userId) => {
+    const cacheKey = `tasks:list:${userId}`;
+    const cachedData = await cache.get(cacheKey);
+    if (cachedData) return cachedData;
+
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
 
@@ -39,29 +51,41 @@ const getTasks = async (userId) => {
             userId,
             isActive: true,
         },
-        include: {
+        select: {
+            id: true,
+            title: true,
+            priority: true,
+            startDate: true,
+            endDate: true,
+            createdAt: true,
             dailyStatus: {
                 where: { date: today },
                 select: {
                     isCompleted: true,
                     taskTitle: true,
                     taskPriority: true,
-                }
+                },
+                take: 1
             }
         },
         orderBy: { createdAt: "desc" },
     });
 
-    return tasks.map(task => {
+    const result = tasks.map(task => {
         const status = task.dailyStatus?.[0];
         return {
-            ...task,
+            id: task.id,
+            title: status?.taskTitle || task.title,
+            priority: status?.taskPriority || task.priority,
+            startDate: task.startDate,
+            endDate: task.endDate,
+            createdAt: task.createdAt,
             completed: status?.isCompleted || false,
-            taskTitle: status?.taskTitle || task.title,
-            taskPriority: status?.taskPriority || task.priority,
-            dailyStatus: undefined
         };
     });
+
+    await cache.set(cacheKey, result, CACHE_TTL);
+    return result;
 };
 
 const updateTask = async (userId, taskId, data) => {
@@ -105,6 +129,7 @@ const updateTask = async (userId, taskId, data) => {
         }
     });
 
+    await invalidateTaskCache(userId);
     return updatedTask;
 };
 
@@ -122,9 +147,8 @@ const deleteTask = async (userId, taskId) => {
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
     
-    // We import calculateAndSaveSummary dynamically to avoid circular dependencies if any,
-    // though since it's a service we can import it statically at the top.
     await calculateAndSaveSummary(userId, today);
+    await invalidateTaskCache(userId);
 };
 
 module.exports = {

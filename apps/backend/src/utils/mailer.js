@@ -18,6 +18,7 @@ const getTransporter = () => {
     });
 };
 
+
 const sendEmail = async ({ to, subject, text, html }) => {
     const transporter = getTransporter();
 
@@ -26,15 +27,19 @@ const sendEmail = async ({ to, subject, text, html }) => {
         return false;
     }
 
-    await transporter.sendMail({
-        from: env.CONTACT_EMAIL_USER,
-        to,
-        subject,
-        text,
-        html,
-    });
-
-    return true;
+    try {
+        await transporter.sendMail({
+            from: env.CONTACT_EMAIL_USER,
+            to,
+            subject,
+            text,
+            html,
+        });
+        return true;
+    } catch (error) {
+        console.error("[mailer] Failed to send email:", error);
+        return false;
+    }
 };
 
 module.exports = {
